@@ -24,13 +24,6 @@
         "default": true,
         "groups": [
           {
-            "group": "Bắt đầu",
-            "icon": "rocket",
-            "pages": [
-              "vi/introduction"
-            ]
-          },
-          {
             "group": "Tài liệu API",
             "icon": "code",
             "pages": [
@@ -140,13 +133,6 @@
         "language": "en",
         "groups": [
           {
-            "group": "Getting Started",
-            "icon": "rocket",
-            "pages": [
-              "en/introduction"
-            ]
-          },
-          {
             "group": "API Reference",
             "icon": "code",
             "pages": [
@@ -255,8 +241,9 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/logo-dark.png",
+    "dark": "/images/logo-dark.png",
+    "href": "https://omocaptcha.com"
   },
   "navbar": {
     "primary": {
