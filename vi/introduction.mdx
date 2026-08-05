@@ -1,0 +1,85 @@
+---
+title: "Giới thiệu"
+description: "Tài liệu API chính thức của OMOCaptcha"
+icon: "house"
+sidebarTitle: "Giới thiệu"
+---
+
+OMOCaptcha cung cấp API giải captcha cho hàng chục loại captcha phổ biến: **reCAPTCHA, hCaptcha, FunCaptcha, GeeTest, TikTok, Shopee, Zalo, Amazon, Tencent**, v.v.
+
+## Bắt đầu nhanh
+
+<Steps>
+  <Step title="Đăng ký tài khoản">
+    Truy cập [omocaptcha.com](https://omocaptcha.com) để đăng ký và lấy **API key**.
+  </Step>
+  <Step title="Nạp tiền">
+    Nạp tiền vào tài khoản hoặc mua **gói combo** phù hợp.
+  </Step>
+  <Step title="Tích hợp API">
+    Tích hợp API vào ứng dụng của bạn theo tài liệu bên dưới.
+  </Step>
+</Steps>
+
+## Endpoint chính
+
+**API base URL:**
+
+```text
+https://api.omocaptcha.com
+```
+
+| Endpoint | Mô tả |
+| --- | --- |
+| `POST /v2/createTask` | Tạo task captcha mới |
+| `POST /v2/getTaskResult` | Lấy kết quả task |
+| `POST /v2/getBalance` | Kiểm tra số dư |
+| `POST /v2/getAccountInfo` | Thông tin tài khoản chi tiết |
+| `POST /v2/getMyPackages` | Danh sách gói đã mua |
+| `POST /v2/getServicePrice` | Danh sách captcha \+ giá (mặc định `type:"service"`); truyền `type:"package"` để lấy gói combo |
+
+## Quy ước response
+
+Tất cả endpoint trả về **HTTP 200** với error envelope chuẩn (`errorId` phân biệt thành công/thất bại):
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  // ... các field khác tùy endpoint
+}
+```
+
+- `errorId: 0` — **thành công**
+- `errorId: 1` — **lỗi nghiệp vụ**, đọc `errorCode` để phân loại
+
+<Tip>
+  Xem **Bảng mã lỗi** để biết chi tiết từng `errorCode`.
+</Tip>
+
+## Xác thực
+
+Hầu hết endpoint yêu cầu API key trong body, trường `clientKey`:
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+<Note>
+  Endpoint **không cần xác thực (public)**: `/v2/getServicePrice`
+
+  - `type:"service"` → lấy captcha lẻ
+  - `type:"package"` → lấy gói combo
+</Note>
+
+## Bảo mật
+
+<Warning>
+  Mỗi task chỉ có thể lấy kết quả bằng đúng API key đã tạo task đó (**key-binding**). Sai key sẽ trả về `ERROR_TASK_KEY_MISMATCH`.
+</Warning>
+
+- API key có độ dài **10–80 ký tự**
+- Key quá ngắn hoặc quá dài sẽ bị **từ chối ngay** khi nhận request

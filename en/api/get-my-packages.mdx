@@ -1,0 +1,159 @@
+---
+title: "My Packages"
+description: "List purchased packages with status and remaining solves"
+sidebarTitle: "My Packages"
+---
+
+List the packages your account has purchased, including active status and remaining solves.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getMyPackages
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your account API key |
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "packages": [
+    {
+      "packageId": 1,
+      "packageName": "Combo Funcaptcha",
+      "tokenPackage": "PKG_R2MXPRMQWKXKETKT54MFJOWITOII...",
+      "remaining": 1006190,
+      "dateStart": "2024-12-11 14:50:11",
+      "dateEnd": "2028-02-09 00:19:30",
+      "isActive": true,
+      "services": [
+        { "type": "FuncaptchaImageTask", "name": "FunCaptcha Image" }
+      ]
+    },
+    {
+      "packageId": 2,
+      "packageName": "Combo TikTok",
+      "tokenPackage": "PKG_OTHER_TOKEN...",
+      "remaining": 0,
+      "dateStart": "2024-12-01 10:00:00",
+      "dateEnd": "2025-12-01 10:00:00",
+      "isActive": false,
+      "services": [
+        { "type": "TiktokSelectObjectWebTask", "name": "Tiktok (Select object - Web)" },
+        { "type": "TiktokSliderWebTask", "name": "TikTok (Slider - Web)" }
+      ]
+    }
+  ]
+}
+```
+
+```json No packages
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "packages": []
+}
+```
+
+```json Error
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "API key does not exist"
+}
+```
+
+</CodeGroup>
+
+### Response Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `packageId` | integer | Package ID (refers to `getServicePrice` `type=package`) |
+| `packageName` | `String` | Package name |
+| `tokenPackage` | `String` | Special token in the form `PKG_...` — use instead of `clientKey` to charge directly against the package when creating a task |
+| `remaining` | integer | Remaining solves |
+| `dateStart` | `String` | Effective start date |
+| `dateEnd` | `String` | Expiration date |
+| `isActive` | `Boolean` | `true` if the package hasn't expired, has remaining solves, and is active |
+| `services` | `Array` | Captcha types covered by the package. Each item: `{type, name}` |
+
+<Info>
+  Accounts with no packages receive `packages: []`. See [available packages](/en/api/get-service-price) to purchase.
+</Info>
+
+## Using `tokenPackage` to create a task against a package
+
+When creating a captcha task, use `tokenPackage` instead of your regular `clientKey` — the system charges the package directly:
+
+```json POST /v2/createTask
+{
+  "clientKey": "PKG_R2MXPRMQWKXKETKT54MFJ...",
+  "task": {
+    "type": "FuncaptchaImageTask",
+    "imageBase64": "...",
+    "other": "..."
+  }
+}
+```
+
+<Tip>
+  The system deducts directly from the package's `remaining`, **not** from `balance`.
+</Tip>
+
+## When does a package run out?
+
+<Warning>
+  If `remaining = 0` or `isActive = false`, calling `createTask` with that package token returns `ERROR_PACKAGE_EXHAUSTED` or `ERROR_PACKAGE_EXPIRED`.
+</Warning>
+
+**How to handle:** buy a new package — the old one will automatically stop working.
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getMyPackages \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "OMO_API_KEY"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getMyPackages", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getMyPackages",
+    json={"clientKey": "OMO_API_KEY"}
+)
+print(res.json())
+```
+
+</CodeGroup>

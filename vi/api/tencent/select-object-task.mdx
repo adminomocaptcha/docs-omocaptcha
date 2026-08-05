@@ -1,0 +1,132 @@
+---
+title: "TencentSelectObjectTask"
+sidebarTitle: "TencentSelectObjectTask"
+description: "Giải Tencent captcha chọn đối tượng (select object) bằng TencentSelectObjectTask."
+---
+
+<Frame>
+  <img
+    src="/images/tencent-select-object-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+Captcha select object là một loại hình ảnh xác thực phổ biến — người dùng cần chọn các đối tượng phù hợp với câu hỏi (hoặc ảnh anchor) trong lưới ảnh.
+
+## 1. Tạo yêu cầu
+
+**Endpoint:** `POST https://api.omocaptcha.com/v2/createTask`
+
+### Tham số
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | API key trong tài khoản của bạn. |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh captcha đã mã hoá Base64.<br /><img src="/images/tencent-select-object-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.question` | `String` | ✅ | Câu hỏi của captcha |
+| `task.anchor` | `String` | ❌ | Ảnh anchor (nếu có) ngay sau câu hỏi.<br /><img src="/images/tencent-select-object-anchor.png" style={{ maxWidth: "120px", width: "100%" }} /> |
+
+### Ví dụ request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "YOUR_API_KEY",
+    "task": {
+      "type": "TencentSelectObjectTask",
+      "imageBase64": "BASE64_IMAGE",
+      "question": "choose the most alike",
+      "anchor": "BASE64_ANCHOR"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "YOUR_API_KEY",
+    task: {
+      type: "TencentSelectObjectTask",
+      imageBase64: "BASE64_IMAGE",
+      question: "choose the most alike",
+      anchor: "BASE64_ANCHOR"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "YOUR_API_KEY",
+    "task": {
+        "type": "TencentSelectObjectTask",
+        "imageBase64": "BASE64_IMAGE",
+        "question": "choose the most alike",
+        "anchor": "BASE64_ANCHOR"
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+  "clientKey" => "YOUR_API_KEY",
+  "task" => [
+    "type" => "TencentSelectObjectTask",
+    "imageBase64" => "BASE64_IMAGE",
+    "question" => "choose the most alike",
+    "anchor" => "BASE64_ANCHOR"
+  ]
+]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Ví dụ phản hồi
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+## 2. Lấy kết quả
+
+**Endpoint:** `POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "YOUR_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Ví dụ phản hồi
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "objects": [4, 5]
+  }
+}
+```
+
+`solution.objects` là danh sách chỉ số (bắt đầu từ `0`) của các ô ảnh cần chọn trong lưới, đọc từ trái sang phải, trên xuống dưới.

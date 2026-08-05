@@ -1,0 +1,190 @@
+---
+title: "ZaloSelectObjectTask"
+sidebarTitle: "ZaloSelectObjectTask"
+description: "Giải captcha chọn đối tượng của Zalo"
+---
+
+Chọn đối tượng là một loại hình ảnh xác thực phổ biến.
+
+<Frame>
+  <img
+    src="/images/zalo-select-object-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh lưới 3x3 được mã hóa base64 <br /><img src="/images/zalo-select-object-grid.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.other` | `String` | ✅ | Văn bản câu hỏi captcha <br /><img src="/images/zalo-select-object-question.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ZaloSelectObjectTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "other": "Chọn tất cả ảnh có: biển báo giao thông"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ZaloSelectObjectTask',
+    imageBase64: 'BASE64_BODY_HERE',
+    other: 'Chọn tất cả ảnh có: biển báo giao thông'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.omocaptcha.com/v2/createTask',
+    json={
+        'clientKey': 'OMO_API_KEY',
+        'task': {
+            'type': 'ZaloSelectObjectTask',
+            'imageBase64': 'BASE64_BODY_HERE',
+            'other': 'Chọn tất cả ảnh có: biển báo giao thông'
+        }
+    }
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ZaloSelectObjectTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'other' => 'Chọn tất cả ảnh có: biển báo giao thông'
+    ]
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ sẽ trả về `errorId = 1` cùng với `errorCode` là mã lỗi.
+
+## 2. Nhận kết quả yêu cầu
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "objects": [0, 1, 2, 3]
+  }
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong `solution`.
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `solution.objects` | `Array<Number>` | Danh sách chỉ số (index) các ô cần chọn trong lưới 3x3, đánh số từ `0` đến `8` theo thứ tự trái sang phải, trên xuống dưới |
+
+<Tip>
+  Lưới 3x3 được đánh chỉ số như sau: hàng trên `0, 1, 2`, hàng giữa `3, 4, 5`, hàng dưới `6, 7, 8`. Click chọn tất cả các ô có index nằm trong `solution.objects`, sau đó bấm nút **Xác thực**.
+</Tip>
+
+Đang xử lý:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `status = processing` khi yêu cầu đang được xử lý. Vui lòng chờ 2 giây rồi yêu cầu lại.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ sẽ trả về `errorId = 1` khi xử lý thất bại.

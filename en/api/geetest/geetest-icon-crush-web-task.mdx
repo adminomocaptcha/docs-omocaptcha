@@ -1,0 +1,173 @@
+---
+title: "GeetestIconCrushWebTask"
+sidebarTitle: "GeetestIconCrushWebTask"
+description: "Solve Geetest icon crush captcha on web"
+---
+
+The icon crush captcha is a common image challenge that asks the user to **swap the positions of two icons** on a 3×3 grid so that three identical icons line up in a row (horizontally, vertically, or diagonally).
+
+<Frame>
+  <img
+    src="/images/geetest-icon-crush-web-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create a task
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account key |
+| `task.type` | `String` | ✅ | Captcha service class name |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded 3×3 icon grid image<br /><br /><img src="/images/geetest-icon-crush-web-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestIconCrushWebTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "GeetestIconCrushWebTask",
+      imageBase64: "BASE64_BODY_HERE"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "OMO_API_KEY",
+    "task": {
+        "type": "GeetestIconCrushWebTask",
+        "imageBase64": "BASE64_BODY_HERE"
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "GeetestIconCrushWebTask",
+        "imageBase64" => "BASE64_BODY_HERE"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` when the task is created successfully.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` along with the corresponding `errorCode`.
+
+## 2. Get the task result
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "swap_positions": [4, 7]
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the result from the `solution` field.
+
+<Tip>
+  `solution.swap_positions` is a pair of **cell indices to swap** on the 3×3 grid. Cells are numbered from **0 to 8**, left-to-right and top-to-bottom (row 1: `0, 1, 2` – row 2: `3, 4, 5` – row 3: `6, 7, 8`). Click or drag the icon from the first cell onto the second cell (or vice versa) to solve the captcha.
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing`. Wait 2 seconds and poll again.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1` when the task fails.

@@ -1,0 +1,99 @@
+---
+title: "Set API Key for the extension"
+description: "Configure your API Key in the OMOCaptcha extension"
+sidebarTitle: "Set API Key for the extension"
+---
+
+Once you have installed the extension (see [Install extension from zip](/en/guides/install-extension-from-zip)), you have **3 ways** to set the API Key:
+
+<CardGroup cols={3}>
+  <Card title="Way 1" icon="mouse-pointer">
+    Enter directly in the extension popup
+  </Card>
+
+  <Card title="Way 2" icon="file-code">
+    Edit the `configs.json` file
+  </Card>
+
+  <Card title="Way 3" icon="link">
+    Use a URL in the browser
+  </Card>
+</CardGroup>
+
+## Way 1. Enter directly in the extension
+
+After installing the extension, click the **extension icon** in your browser toolbar to open the popup.
+
+<Frame>
+  ![Click the extension icon](/images/huong-dan/set-api-key/01-click-extension-icon.png)
+</Frame>
+
+In the popup, paste your **API Key** into the **Your client key** field, then click outside to save.
+
+<Frame>
+  ![Enter client key in the extension](/images/huong-dan/set-api-key/02-nhap-client-key.png)
+</Frame>
+
+<Tip>
+  If you don't have an API Key yet, sign in at [omocaptcha.com](https://omocaptcha.com) and grab it from your account page.
+</Tip>
+
+## Way 2. Enter directly in a file inside the extension
+
+Click [here](https://drive.google.com/drive/folders/1) to open the folder containing the extensions. The extract password is `12345`.
+
+After downloading and extracting, locate the **`configs.json`** file inside the extension folder.
+
+<Frame>
+  ![configs.json file in the extension folder](/images/huong-dan/set-api-key/03-file-configs-json.png)
+</Frame>
+
+Open the file with any text editor (Notepad, VS Code, Sublime Text…) and find the line containing **`YOUR_CLIEN_KEY`**. Replace it with your real API Key and save the file.
+
+<Frame>
+  ![Replace YOUR\_CLIEN\_KEY with your API Key](/images/huong-dan/set-api-key/04-sua-your-clien-key.png)
+</Frame>
+
+Example before:
+
+```json configs.json
+{
+  "api_key": "YOUR_CLIEN_KEY",
+  "power_on": true,
+  ...
+}
+```
+
+After:
+
+```json configs.json
+{
+  "api_key": "abc123-your-real-api-key-xyz",
+  "power_on": true,
+  ...
+}
+```
+
+<Warning>
+  After editing `configs.json`, open `chrome://extensions/` and click the **reload** button on the OMOCaptcha extension so the change takes effect.
+</Warning>
+
+## Way 3. Set via URL in the browser
+
+Once the extension is installed, simply visit the following URL — the extension will **automatically** capture and save the API Key:
+
+```text
+https://omocaptcha.com/set-key?api_key=YOUR_API_KEY
+```
+
+Replace `YOUR_API_KEY` with your real API Key and paste it into the browser's address bar.
+
+<Frame>
+  ![Set API Key via URL](/images/huong-dan/set-api-key/05-set-key-url.png)
+</Frame>
+
+When the page shows **SET KEY OMOCAPTCHA**, the key has been saved successfully.
+
+<Warning>
+  Never share your API Key. If leaked, regenerate a new one in your dashboard.
+</Warning>

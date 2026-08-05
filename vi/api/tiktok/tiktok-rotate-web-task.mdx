@@ -1,0 +1,255 @@
+---
+title: "TiktokRotateWebTask"
+sidebarTitle: "TiktokRotateWebTask"
+description: "Giải captcha xoay ảnh (rotate) của Tiktok trên web."
+---
+
+Xoay trên web là một loại hình ảnh xác thực phổ biến của Tiktok. Người dùng cần xoay ảnh bên trong sao cho khớp với ảnh bên ngoài.
+
+<Frame caption="Ví dụ captcha xoay ảnh của Tiktok">
+  <img
+    src="/images/tiktok-rotate-modal.png"
+    style={{ maxWidth: "720px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | String | ✅ | Khóa API tài khoản khách hàng |
+| `task.type` | String | ✅ | Tên class dịch vụ captcha cần giải: `TiktokRotateWebTask` |
+| `task.imageBase64s` | Array of String | ✅ | Mảng 2 chuỗi base64: `[ảnh bên trong, ảnh bên ngoài]` |
+
+<Info>
+  `imageBase64s` phải là mảng **2 phần tử theo đúng thứ tự**: phần tử đầu là ảnh **bên trong** (image inside), phần tử thứ hai là ảnh **bên ngoài** (image outside). Không kèm tiền tố `data:image/...;base64,`.
+</Info>
+
+### Loại ảnh
+
+| Loại ảnh | Image |
+| --- | --- |
+| **Image inside** — ảnh bên trong (cần xoay) | <img src="/images/tiktok-rotate-inside.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| **Image outside** — ảnh bên ngoài (cố định) | <img src="/images/tiktok-rotate-outside.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "TiktokRotateWebTask",
+      "imageBase64s": [
+        "BASE64_INSIDE_BODY_HERE",
+        "BASE64_OUTSIDE_BODY_HERE"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const res = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'TiktokRotateWebTask',
+    imageBase64s: [
+      'BASE64_INSIDE_BODY_HERE',
+      'BASE64_OUTSIDE_BODY_HERE'
+    ]
+  }
+});
+
+console.log(res.data);
+```
+
+```python Python
+import requests
+
+res = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'TiktokRotateWebTask',
+        'imageBase64s': [
+            'BASE64_INSIDE_BODY_HERE',
+            'BASE64_OUTSIDE_BODY_HERE'
+        ]
+    }
+})
+
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'TiktokRotateWebTask',
+        'imageBase64s' => [
+            'BASE64_INSIDE_BODY_HERE',
+            'BASE64_OUTSIDE_BODY_HERE'
+        ]
+    ]
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` cùng `errorCode` mô tả lỗi.
+
+## 2. Nhận kết quả
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "rotate": 0.76
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong trường `solution`.
+
+### Cách tính vị trí kéo Slider CAPTCHA
+
+Nút kéo chỉ có thể di chuyển trong phạm vi bằng **chiều dài thanh trượt trừ đi chiều dài của nút kéo**. Hệ thống CAPTCHA không trả về giá trị pixel trực tiếp mà trả về một giá trị tỷ lệ gọi là `solution`, nằm trong khoảng **từ 0 đến 1**, biểu thị vị trí đúng của nút trên thanh trượt.
+
+Để chuyển giá trị tỷ lệ này sang vị trí thực tế theo pixel, sử dụng công thức:
+
+```text
+targetX = (chiều dài thanh trượt − chiều dài nút kéo) × (1 − solution)
+```
+
+Kết quả của công thức là **tọa độ X mục tiêu** mà nút kéo cần đạt tới trên thanh trượt, không phải là quãng đường cần kéo thêm.
+
+<Tip>
+  Ví dụ: nếu thanh trượt dài **300px**, nút kéo dài **40px** thì quãng đường tối đa là **260px**. Khi `solution = 0.76`, vị trí cần đạt tới là `260 × (1 − 0.76) = 62.4px`. Điều này có nghĩa là nút kéo cần nằm tại vị trí khoảng **62px** trên thanh trượt để xác minh thành công.
+</Tip>
+
+Tóm lại, hệ thống sử dụng giá trị tỷ lệ để đảm bảo tính linh hoạt trên mọi kích thước giao diện, và việc chuyển đổi sang pixel giúp xác định chính xác vị trí kéo của nút.
+
+```javascript Mã mẫu tính vị trí kéo
+// ===============================
+// MÃ MẪU TÍNH VỊ TRÍ KÉO SLIDER CAPTCHA
+// ===============================
+
+// Lấy nút kéo của slider
+const button = document.querySelector('.slider-button');
+if (!button) {
+  console.error('Không tìm thấy nút kéo');
+  return;
+}
+
+// Lấy thanh trượt (phần tử cha trực tiếp của nút)
+const track = button.parentElement;
+if (!track) {
+  console.error('Không tìm thấy thanh trượt');
+  return;
+}
+
+// Chiều dài thanh trượt và nút kéo (px)
+const trackWidth = track.clientWidth;
+const buttonWidth = button.clientWidth;
+
+// Quãng đường tối đa nút kéo có thể di chuyển
+const maxTranslateX = trackWidth - buttonWidth;
+
+// Giá trị solution do hệ thống CAPTCHA trả về (tỷ lệ 0 → 1)
+const solution = 0.76;
+
+// Chuyển tỷ lệ solution sang pixel
+// Công thức: (chiều dài thanh trượt − chiều dài nút) × (1 − solution)
+const targetX = maxTranslateX * (1 - solution);
+
+// Đặt nút kéo tại vị trí cần xác minh
+button.style.transform = `translateX(${targetX}px)`;
+
+// ===============================
+// GHI CHÚ:
+// - solution: tỷ lệ vị trí đúng
+// - targetX: tọa độ X mục tiêu của nút kéo
+// - Không phải quãng đường kéo thêm
+// ===============================
+```
+
+**Đang xử lý:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing` — yêu cầu đang được xử lý, vui lòng chờ **2 giây** rồi gọi lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1` cùng `errorCode` mô tả lỗi.

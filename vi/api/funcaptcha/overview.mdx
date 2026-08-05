@@ -1,0 +1,191 @@
+---
+title: "FuncaptchaImageTask"
+description: "Giải FunCaptcha (Arkose Labs) dạng hình ảnh"
+sidebarTitle: "FuncaptchaImageTask"
+---
+
+FunCaptcha là một loại hình ảnh xác thực phổ biến.
+
+<Columns cols={3}>
+  <Frame caption="Dùng mũi tên để chọn ảnh có tổng số phi tiêu bằng số ở ảnh bên trái">
+    ![FunCaptcha darts challenge](/images/funcaptcha-darts.png)
+  </Frame>
+
+  <Frame caption="Dùng mũi tên để xoay đối tượng hướng theo bàn tay">
+    ![FunCaptcha rotate object challenge](/images/funcaptcha-rotate.png)
+  </Frame>
+
+  <Frame caption="Chọn ảnh có hướng đứng đúng">
+    ![FunCaptcha orientation challenge](/images/funcaptcha-orientation.png)
+  </Frame>
+</Columns>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải (`FuncaptchaImageTask`) |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh được mã hóa base64 (không phải ảnh chụp màn hình) |
+| `task.other` | `String` | ✅ | Văn bản câu hỏi captcha |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "FuncaptchaImageTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "other": "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "FuncaptchaImageTask",
+      imageBase64: "BASE64_BODY_HERE",
+      other: "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "FuncaptchaImageTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "other": "Use the arrows to pick the image where all the darts add up to the number in the left image"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "FuncaptchaImageTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "other" => "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` và `taskId` → thành công
+- `errorId = 1` và `errorCode` → thất bại (tra [Bảng mã lỗi](/vi/api/bang-ma-loi))
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "index": 1
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` và `status = "ready"` → đọc kết quả trong `solution.index`.
+- `errorId = 0` và `status = "processing"` → yêu cầu đang xử lý, chờ **2 giây** rồi gọi lại.
+- `errorId = 1` → thất bại (tra [Bảng mã lỗi](/vi/api/bang-ma-loi)).
+
+<Warning>
+  Server trả về **vị trí của ảnh đúng** trong dãy. Khi click nút mũi tên phải trên web, bạn phải **trừ đi 1** vì ảnh captcha đang ở vị trí thứ nhất.
+
+  Ví dụ: server trả về `index = 5` → click nút mũi tên phải **4 lần**.
+</Warning>

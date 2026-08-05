@@ -1,0 +1,174 @@
+---
+title: "GeetestSliderWebTask"
+sidebarTitle: "GeetestSliderWebTask"
+description: "Giải captcha kéo thả Geetest trên web"
+---
+
+Kéo thả trên web là một loại hình ảnh xác thực phổ biến.
+
+<Frame>
+  <img
+    src="/images/geetest-slider-web.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh được mã hóa base64 |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestSliderWebTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "GeetestSliderWebTask",
+      imageBase64: "BASE64_BODY_HERE"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "OMO_API_KEY",
+    "task": {
+        "type": "GeetestSliderWebTask",
+        "imageBase64": "BASE64_BODY_HERE"
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "GeetestSliderWebTask",
+        "imageBase64" => "BASE64_BODY_HERE"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` cùng `errorCode` là mã lỗi tương ứng.
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong trường `solution`.
+
+<Tip>
+  `solution.end` là toạ độ điểm cuối cần kéo thanh trượt đến (tính theo pixel của ảnh gốc). Tính khoảng cách kéo bằng `end.x` trừ đi vị trí ban đầu của núm trượt.
+</Tip>
+
+**Đang xử lý:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing`, vui lòng chờ 2 giây rồi yêu cầu lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1` khi tác vụ thất bại.

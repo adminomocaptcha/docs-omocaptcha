@@ -1,0 +1,202 @@
+---
+title: "GeetestIconWebTask"
+sidebarTitle: "GeetestIconWebTask"
+description: "Solve Geetest icon-click captcha on web"
+---
+
+Icon-click captcha on web is a common Geetest challenge type.
+
+<Frame>
+  <img
+    src="/images/geetest-icon-web-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account key |
+| `task.type` | `String` | ✅ | Captcha service class name: `GeetestIconWebTask` |
+| `task.imageBase64` | `String` | ✅ | Background image (clickable area) encoded in base64<br /><br /><img src="/images/geetest-icon-web-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.anchorImageBase64s` | `Array of String` | ✅ | Array of 3 icon reference images encoded in base64 (3 separate images, in order)<br /><br /><img src="/images/geetest-icon-web-anchors.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestIconWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "anchorImageBase64s": [
+        "BASE64_ICON_1",
+        "BASE64_ICON_2",
+        "BASE64_ICON_3"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "GeetestIconWebTask",
+      imageBase64: "BASE64_BODY_HERE",
+      anchorImageBase64s: [
+        "BASE64_ICON_1",
+        "BASE64_ICON_2",
+        "BASE64_ICON_3"
+      ]
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "OMO_API_KEY",
+    "task": {
+        "type": "GeetestIconWebTask",
+        "imageBase64": "BASE64_BODY_HERE",
+        "anchorImageBase64s": [
+            "BASE64_ICON_1",
+            "BASE64_ICON_2",
+            "BASE64_ICON_3"
+        ]
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "GeetestIconWebTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "anchorImageBase64s" => [
+            "BASE64_ICON_1",
+            "BASE64_ICON_2",
+            "BASE64_ICON_3"
+        ]
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+<Tip>
+  `anchorImageBase64s` must be an array of **3 separate images**, each cropped and ordered left-to-right as shown on the captcha. This order determines the order of points returned in `solution.points`.
+</Tip>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Server returns `errorId = 0` and a `taskId` on success.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Server returns `errorId = 1` with the corresponding `errorCode`.
+
+## 2. Get task result
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "points": [
+      { "x": 40, "y": 96 },
+      { "x": 32, "y": 29 },
+      { "x": 127, "y": 40 }
+    ]
+  }
+}
+```
+
+Server returns `errorId = 0` and `status = ready`. Read the answer in the `solution` field.
+
+<Tip>
+  `solution.points` contains the coordinates (in `imageBase64` pixels) of the **3 icons to click**, ordered to match the `anchorImageBase64s` you sent. Click each point in array order.
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Server returns `errorId = 0` and `status = processing`. Wait 2 seconds and retry.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Server returns `errorId = 1` when the task fails.

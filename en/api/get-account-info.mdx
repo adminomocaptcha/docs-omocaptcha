@@ -1,0 +1,119 @@
+---
+title: "Get Account Info"
+description: "Detailed account info: username, email, tier, balance, totals, created date"
+sidebarTitle: "Get Account Info"
+---
+
+Returns more detailed account information than `getBalance`: username, email, tier, balance, voucher balance, total charged, total spent, account creation date.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getAccountInfo
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your account API key |
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "username": "myusername",
+  "email": "me@example.com",
+  "level": "1",
+  "balance": "50.00000",
+  "voucherBalance": "40.60000",
+  "totalCharged": "2127.00000",
+  "totalSpent": "0.00000",
+  "isDeveloper": false,
+  "createdAt": "2025-12-01 10:00:00"
+}
+```
+
+```json Error
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "API key does not exist"
+}
+```
+
+</CodeGroup>
+
+### Response Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `errorId` | integer | `0` = success, `1` = business error |
+| `errorCode` | `String` | Error code (empty on success) |
+| `errorDescription` | `String` | Error description |
+| `username` | `String` | Login username |
+| `email` | `String` | Account email |
+| `level` | `String` | Account tier (`1` = standard) |
+| `balance` | `String` | Main balance (USD, string to preserve decimal precision) |
+| `voucherBalance` | `String` | Voucher balance — when `balance` is insufficient, the system automatically uses this balance |
+| `totalCharged` | `String` | Cumulative total top-up |
+| `totalSpent` | `String` | Cumulative total spent on jobs |
+| `isDeveloper` | `Boolean` | `true` if the account is enrolled in the developer program (affiliate participant, earns referral commissions) |
+| `createdAt` | `String` | Account creation timestamp |
+
+<Tip>
+  See the **Error codes** page for the full list of `errorCode` values.
+</Tip>
+
+## Notes
+
+<Warning>
+  **Authentication required**: a valid API key must be provided in `clientKey`.
+</Warning>
+
+<Info>
+  When creating a captcha task, if `balance` is insufficient the system automatically deducts from `voucherBalance` if enough remains.
+</Info>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getAccountInfo \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "OMO_API_KEY"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getAccountInfo", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getAccountInfo",
+    json={"clientKey": "OMO_API_KEY"}
+)
+print(res.json())
+```
+
+</CodeGroup>

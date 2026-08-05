@@ -1,0 +1,180 @@
+---
+title: "RecaptchaV2ImageTask"
+description: "Giải reCAPTCHA v2 dạng hình ảnh (image challenge)"
+sidebarTitle: "RecaptchaV2ImageTask"
+---
+
+reCAPTCHA-v2 còn được gọi là captcha **TÔI KHÔNG PHẢI ROBOT**, reCAPTCHA là một loại hình ảnh xác thực rất phổ biến.
+
+<Frame>
+  ![Ví dụ reCAPTCHA v2 dạng hình ảnh — Select all images with cars](/images/recaptcha-v2-image-grid.png)
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải (`RecaptchaV2ImageTask`) |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh captcha được mã hoá thành base64. |
+| `task.question` | `String` | ✅ | Câu hỏi của thử thách captcha. |
+
+<Warning>
+  Hình ảnh phải được thu nhỏ theo kích thước **chuẩn** (`100x100`, `300x300`, `450x450`) để dịch vụ có thể xác định loại hình ảnh.
+</Warning>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "RecaptchaV2ImageTask",
+      "imageBase64": "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDc.",
+      "question": "traffic lights"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "RecaptchaV2ImageTask",
+      imageBase64: "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDc.",
+      question: "traffic lights"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "RecaptchaV2ImageTask",
+            "imageBase64": "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDc.",
+            "question": "traffic lights"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "RecaptchaV2ImageTask",
+        "imageBase64" => "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDc.",
+        "question" => "traffic lights"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` và `taskId` → thành công
+- `errorId = 1` và `errorCode` → thất bại (tra [Bảng mã lỗi](/vi/api/bang-ma-loi))
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "objects": [1, 5, 8],
+    "type": "multi"
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` & `status = "ready"` → đọc kết quả trong `solution.objects` (vị trí các ô cần nhấp vào)
+- `errorId = 0` & `status = "processing"` → đang xử lý, **chờ 2 giây** rồi thử lại
+- `errorId = 1` → thất bại, tra `errorCode` trong [Bảng mã lỗi](/vi/api/bang-ma-loi)

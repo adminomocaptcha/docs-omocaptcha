@@ -1,0 +1,119 @@
+---
+title: "Lấy thông tin tài khoản"
+description: "Thông tin tài khoản chi tiết: tên, email, hạng, số dư, tổng đã nạp/chi, ngày tạo"
+sidebarTitle: "Lấy thông tin tài khoản"
+---
+
+Trả về thông tin tài khoản chi tiết hơn so với `getBalance`: tên đăng nhập, email, hạng, số dư, số dư khuyến mại, tổng đã nạp, tổng đã chi, ngày tạo tài khoản.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getAccountInfo
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | API key của tài khoản |
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "username": "myusername",
+  "email": "me@example.com",
+  "level": "1",
+  "balance": "50.00000",
+  "voucherBalance": "40.60000",
+  "totalCharged": "2127.00000",
+  "totalSpent": "0.00000",
+  "isDeveloper": false,
+  "createdAt": "2025-12-01 10:00:00"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "API key does not exist"
+}
+```
+
+</CodeGroup>
+
+### Giải thích các trường
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `errorId` | integer | `0` = thành công, `1` = lỗi nghiệp vụ |
+| `errorCode` | `String` | Mã lỗi (rỗng nếu thành công) |
+| `errorDescription` | `String` | Mô tả chi tiết lỗi |
+| `username` | `String` | Tên đăng nhập |
+| `email` | `String` | Email tài khoản |
+| `level` | `String` | Hạng tài khoản (`1` = bình thường) |
+| `balance` | `String` | Số dư chính (USD, kiểu chuỗi để giữ độ chính xác thập phân) |
+| `voucherBalance` | `String` | Số dư khuyến mại — khi `balance` không đủ, hệ thống sẽ tự động dùng số dư này |
+| `totalCharged` | `String` | Tổng số tiền đã nạp lũy kế |
+| `totalSpent` | `String` | Tổng số tiền đã chi cho các job |
+| `isDeveloper` | `Boolean` | `true` nếu tài khoản đã đăng ký chương trình developer (tham gia affiliate, được hưởng hoa hồng giới thiệu) |
+| `createdAt` | `String` | Thời điểm tạo tài khoản |
+
+<Tip>
+  Xem **Bảng mã lỗi** để biết danh sách đầy đủ các `errorCode`.
+</Tip>
+
+## Lưu ý
+
+<Warning>
+  **Yêu cầu xác thực**: phải có API key hợp lệ trong `clientKey`.
+</Warning>
+
+<Info>
+  Khi tạo task captcha mà `balance` không đủ, hệ thống tự động trừ tiền từ `voucherBalance` nếu còn đủ.
+</Info>
+
+## Ví dụ sử dụng
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getAccountInfo \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "OMO_API_KEY"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getAccountInfo", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getAccountInfo",
+    json={"clientKey": "OMO_API_KEY"}
+)
+print(res.json())
+```
+
+</CodeGroup>

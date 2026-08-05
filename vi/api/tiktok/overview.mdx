@@ -1,0 +1,199 @@
+---
+title: "TiktokSelectObjectWebTask"
+description: "Chọn 2 đối tượng có hình dạng giống nhau trên web TikTok"
+sidebarTitle: "TiktokSelectObjectWebTask"
+---
+
+Chọn 2 đối tượng trên web là một loại hình ảnh xác thực phổ biến của TikTok.
+
+<Frame caption="Ví dụ captcha 'Chọn 2 đối tượng có hình dạng giống nhau' trên TikTok">
+  ![Tiktok select object modal](/images/tiktok-select-object-modal.png)
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | String | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | String | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | String | ✅ | Hình ảnh được mã hóa base64 <br /> <img src="/images/tiktok-select-object-image.png" alt="Ảnh challenge" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
+| `task.widthView` | Number | ✅ | Chiều rộng ảnh hiển thị trên web (px) <br /> <img src="/images/tiktok-width-view.png" alt="widthView" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
+| `task.heightView` | Number | ✅ | Chiều cao ảnh hiển thị trên web (px) <br /> <img src="/images/tiktok-height-view.png" alt="heightView" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
+| `task.question` | String | ✅ | Câu hỏi của captcha (ví dụ: `Which of these objects are used in hoops?`) |
+
+<Info>
+  `widthView` và `heightView` là kích thước ảnh **đang hiển thị trên web** (khác với kích thước gốc của ảnh). Bạn có thể click chuột phải vào ảnh → _Kiểm tra phần tử_ để lấy đúng giá trị.
+</Info>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "TiktokSelectObjectWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 340,
+      "heightView": 212,
+      "question": "Which of these objects.?"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require("axios");
+
+const { data } = await axios.post("https://api.omocaptcha.com/v2/createTask", {
+  clientKey: "OMO_API_KEY",
+  task: {
+    type: "TiktokSelectObjectWebTask",
+    imageBase64: "BASE64_BODY_HERE",
+    widthView: 340,
+    heightView: 212,
+    question: "Which of these objects.?",
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "TiktokSelectObjectWebTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "widthView": 340,
+            "heightView": 212,
+            "question": "Which of these objects.?"
+        },
+    },
+)
+print(resp.json())
+```
+
+```php PHP
+<?php
+$payload = [
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type"        => "TiktokSelectObjectWebTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "widthView"   => 340,
+        "heightView"  => 212,
+        "question"    => "Which of these objects.?"
+    ],
+];
+
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST           => true,
+    CURLOPT_HTTPHEADER     => ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     => json_encode($payload),
+]);
+echo curl_exec($ch);
+curl_close($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` kèm `errorCode` là mã lỗi tương ứng.
+
+## 2. Nhận kết quả
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "pointA": { "x": 50, "y": 30 },
+    "pointB": { "x": 100, "y": 70 }
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc tọa độ 2 đối tượng cần click trong `solution.pointA` và `solution.pointB`.
+
+<Tip>
+  Tọa độ `x`, `y` tính theo hệ trục của ảnh đã hiển thị trên web (dựa trên `widthView` × `heightView`). Click đúng 2 điểm này rồi bấm **Xác nhận**.
+</Tip>
+
+**Đang xử lý:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing`. Vui lòng đợi 2 giây rồi gọi lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1`, tham khảo [Bảng mã lỗi](/vi/api/bang-ma-loi) để xử lý.

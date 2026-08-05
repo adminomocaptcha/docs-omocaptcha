@@ -1,0 +1,199 @@
+---
+title: "Tiktok3DSelectObjectWebTask"
+sidebarTitle: "Tiktok3DSelectObjectWebTask"
+description: "Giải captcha chọn 2 đối tượng 3D giống nhau trên web của Tiktok."
+---
+
+Chọn 2 đối tượng 3D trên web là một loại hình ảnh xác thực phổ biến. Người dùng cần chọn 2 đối tượng 3D có cùng hình dạng trong một ảnh nền.
+
+<Frame caption="Ví dụ captcha Tiktok 3D Select Object">
+  <img
+    src="/images/tiktok-3d-select-modal.png"
+    alt="Tiktok 3D Select Object captcha"
+    style={{ maxWidth: "320px" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | String | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | String | ✅ | `Tiktok3DSelectObjectWebTask` |
+| `task.imageBase64` | String | ✅ | Hình ảnh captcha được mã hóa base64 <br /><img src="/images/tiktok-3d-select-image.png" alt="imageBase64" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
+| `task.widthView` | Number | ✅ | Chiều rộng ảnh hiển thị trên web |
+| `task.heightView` | Number | ✅ | Chiều cao ảnh hiển thị trên web |
+| `task.question` | String | ✅ | Câu hỏi của captcha |
+
+<Info>
+  `widthView` và `heightView` là kích thước ảnh **đang hiển thị** trên trang web, không phải kích thước gốc của ảnh. Dùng công cụ Inspect element của trình duyệt để lấy giá trị chính xác.
+</Info>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "Tiktok3DSelectObjectWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 340,
+      "heightView": 212,
+      "question": "Which of these objects are used in hoops?"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "Tiktok3DSelectObjectWebTask",
+      imageBase64: "BASE64_BODY_HERE",
+      widthView: 340,
+      heightView: 212,
+      question: "Which of these objects are used in hoops?",
+    },
+  }),
+});
+const data = await res.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "Tiktok3DSelectObjectWebTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "widthView": 340,
+            "heightView": 212,
+            "question": "Which of these objects are used in hoops?",
+        },
+    },
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "Tiktok3DSelectObjectWebTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "widthView" => 340,
+        "heightView" => 212,
+        "question" => "Which of these objects are used in hoops?",
+    ],
+]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` kèm `errorCode`. Xem [Mã lỗi](/vi/api/bang-ma-loi) để biết chi tiết.
+
+## 2. Nhận kết quả
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "pointA": { "x": 50, "y": 30 },
+    "pointB": { "x": 100, "y": 70 }
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong `solution`:
+
+- `pointA` — tọa độ đối tượng thứ nhất (x, y) tính theo `widthView`/`heightView` đã gửi.
+- `pointB` — tọa độ đối tượng thứ hai.
+
+Click lần lượt vào 2 điểm này trên ảnh để hoàn thành captcha.
+
+**Đang xử lý:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `status = processing`. Hãy chờ ~2 giây rồi gọi lại `getTaskResult`.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1` và `status = fail`.

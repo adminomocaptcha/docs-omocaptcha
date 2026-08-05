@@ -1,0 +1,202 @@
+---
+title: "GeetestIconWebTask"
+sidebarTitle: "GeetestIconWebTask"
+description: "Giải captcha click icon Geetest trên web"
+---
+
+Captcha click icon trên web là một loại hình ảnh xác thực phổ biến.
+
+<Frame>
+  <img
+    src="/images/geetest-icon-web-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | `String` | ✅ | Hảnh nền được mã hóa base64<br /><br /><img src="/images/geetest-icon-web-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.anchorImageBase64s` | `Array of String` | ✅ | Mảng 3 ảnh icon mẫu được mã hóa base64<br /><br /><img src="/images/geetest-icon-web-anchors.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestIconWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "anchorImageBase64s": [
+        "BASE64_ICON_1",
+        "BASE64_ICON_2",
+        "BASE64_ICON_3"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "GeetestIconWebTask",
+      imageBase64: "BASE64_BODY_HERE",
+      anchorImageBase64s: [
+        "BASE64_ICON_1",
+        "BASE64_ICON_2",
+        "BASE64_ICON_3"
+      ]
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "OMO_API_KEY",
+    "task": {
+        "type": "GeetestIconWebTask",
+        "imageBase64": "BASE64_BODY_HERE",
+        "anchorImageBase64s": [
+            "BASE64_ICON_1",
+            "BASE64_ICON_2",
+            "BASE64_ICON_3"
+        ]
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "GeetestIconWebTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "anchorImageBase64s" => [
+            "BASE64_ICON_1",
+            "BASE64_ICON_2",
+            "BASE64_ICON_3"
+        ]
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+<Tip>
+  `anchorImageBase64s` phải là mảng gồm **3 ảnh riêng biệt** đã được cắt tách, sắp xếp đúng thứ tự từ trái sang phải như hiển thị trên captcha. Thứ tự này quyết định thứ tự của các điểm trả về trong `solution.points`.
+</Tip>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` cùng `errorCode` là mã lỗi tương ứng.
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "points": [
+      { "x": 40, "y": 96 },
+      { "x": 32, "y": 29 },
+      { "x": 127, "y": 40 }
+    ]
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong trường `solution`.
+
+<Tip>
+  `solution.points` chứa toạ độ (theo pixel của `imageBase64`) của **3 icon cần click**, sắp xếp đúng thứ tự tương ứng với `anchorImageBase64s` đã gửi lên. Click lần lượt từng điểm theo thứ tự trong mảng.
+</Tip>
+
+**Đang xử lý:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing`, vui lòng chờ 2 giây rồi yêu cầu lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1` khi tác vụ thất bại.

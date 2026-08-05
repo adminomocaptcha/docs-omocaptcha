@@ -1,0 +1,98 @@
+---
+title: "Bảng mã lỗi"
+description: "Toàn bộ errorCode có thể nhận được từ API V2"
+sidebarTitle: "Bảng mã lỗi"
+---
+
+Tất cả endpoint V2 trả về **HTTP 200** với body chứa `errorId`, `errorCode`, `errorDescription`. Dưới đây là toàn bộ `errorCode` có thể nhận được.
+
+## Xác thực & API key
+
+| `errorCode` | Khi nào | Cách khắc phục |
+| --- | --- | --- |
+| `ERROR_KEY_DOES_NOT_EXIST` | API key rỗng / sai / không tồn tại / quá ngắn (\< 10 ký tự) / quá dài (\> 80 ký tự) | Kiểm tra lại API key trên dashboard |
+
+## Gói (package)
+
+| `errorCode` | Khi nào | Cách khắc phục |
+| --- | --- | --- |
+| `ERROR_PACKAGE_NOT_FOUND` | `PKG_` token trỏ tới gói đã bị xóa | Mua gói mới |
+| `ERROR_PACKAGE_EXPIRED` | Gói đã hết hạn (quá `dateEnd`) | Mua gói mới |
+| `ERROR_PACKAGE_EXHAUSTED` | Gói đã hết lượt (`quantity = 0`) | Mua gói mới hoặc nạp thêm lượt |
+| `ERROR_PACKAGE_NOT_SUPPORT` | Loại captcha không thuộc gói này | Đổi loại captcha hoặc nâng cấp gói |
+
+## Số dư (balance)
+
+| `errorCode` | Khi nào | Cách khắc phục |
+| --- | --- | --- |
+| `ERROR_ZERO_BALANCE` | Cả `balance` và `voucherBalance` đều = 0 | Nạp tiền |
+| `ERROR_INSUFFICIENT_BALANCE` | Có tiền nhưng nhỏ hơn giá của loại captcha này | Nạp thêm hoặc chọn captcha rẻ hơn |
+
+## Đầu vào & hệ thống
+
+| `errorCode` | Khi nào | Cách khắc phục |
+| --- | --- | --- |
+| `ERROR_TYPE_JOB_REQUIRED` | Body thiếu `task.type` | Sửa request |
+| `ERROR_TASK_NOT_SUPPORTED` | `task.type` không tồn tại hoặc sai chính tả | Tham khảo [danh sách dịch vụ](/vi/api/lay-danh-sach-dich-vu) |
+| `ERROR_TASK_IS_MAINTENANCE` | Loại captcha đang tạm bảo trì | Thử lại sau vài phút |
+| `ERROR_SERVICE_UNAVAILABLE` | Hệ thống tạm thời busy | Thử lại với exponential backoff |
+| `ERROR_REDIS_UNAVAILABLE` | Hệ thống tạm lỗi sau khi đã trừ tiền — tiền đã tự động hoàn | Thử lại ngay; tiền không mất |
+
+## Kết quả (result)
+
+| `errorCode` | Khi nào | Cách khắc phục |
+| --- | --- | --- |
+| `ERROR_TASK_NOT_FOUND` | `taskId` sai hoặc đã hết TTL | Tạo task mới |
+| `ERROR_TASK_KEY_MISMATCH` | Client dùng API key khác với key đã tạo task | Dùng đúng key đã tạo task |
+| `ERROR_REDIS_JOB_DATA` | Lỗi đọc dữ liệu task (hiếm gặp) | Thử lại 1 lần, sau đó tạo task mới |
+| `ERROR_JOB_STATUS` | Job đã fail (solver giải sai / timeout) — tiền đã được hoàn tự động | Tạo task mới hoặc chấp nhận |
+
+## Quy tắc xử lý phía client
+
+```javascript
+const resp = await fetch('https://api.omocaptcha.com/v2/createTask', {...});
+const body = await resp.json();
+
+if (body.errorId !== 0) {
+  switch (body.errorCode) {
+    case 'ERROR_ZERO_BALANCE':
+    case 'ERROR_INSUFFICIENT_BALANCE':
+      // Stop. Báo người dùng nạp thêm tiền.
+      return notifyTopUp();
+
+    case 'ERROR_PACKAGE_EXHAUSTED':
+    case 'ERROR_PACKAGE_EXPIRED':
+      // Stop. Báo người dùng mua gói mới.
+      return notifyBuyPackage();
+
+    case 'ERROR_KEY_DOES_NOT_EXIST':
+    case 'ERROR_TASK_KEY_MISMATCH':
+      // Stop. Sai key.
+      return notifyInvalidKey();
+
+    case 'ERROR_TASK_IS_MAINTENANCE':
+    case 'ERROR_SERVICE_UNAVAILABLE':
+    case 'ERROR_REDIS_UNAVAILABLE':
+      // Thử lại với exponential backoff
+      return retryWithBackoff();
+
+    default:
+      // Log + báo lỗi cho người dùng
+      console.error(body);
+  }
+}
+```
+
+## Lưu ý quan trọng
+
+<Warning>
+  **HTTP status luôn là 200** với lỗi nghiệp vụ. Chỉ thử lại trên **HTTP 5xx** (lỗi hạ tầng).
+</Warning>
+
+<Info>
+  `errorDescription` là chuỗi mô tả cho người đọc và có thể thay đổi. Dùng `errorCode` để switch logic.
+</Info>
+
+<Tip>
+  API OMOCaptcha tương thích với hầu hết SDK solver mã nguồn mở phổ biến có sẵn.
+</Tip>

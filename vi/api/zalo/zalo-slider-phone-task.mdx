@@ -1,0 +1,195 @@
+---
+title: "ZaloSliderPhoneTask"
+sidebarTitle: "ZaloSliderPhoneTask"
+description: "Giải captcha kéo thả mảnh ghép trên app Zalo"
+---
+
+Kéo thả trên app là một loại hình ảnh xác thực phổ biến.
+
+<Frame>
+  <img
+    src="/images/zalo-slider-phone-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải: `ZaloSliderPhoneTask` |
+| `task.imageBase64` | `String` | ✅ | Hình ảnh chụp màn hình được mã hóa base64 <br /><br /><img src="/images/zalo-slider-phone-modal.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ZaloSliderPhoneTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ZaloSliderPhoneTask',
+    imageBase64: 'BASE64_BODY_HERE'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.omocaptcha.com/v2/createTask',
+    json={
+        'clientKey': 'OMO_API_KEY',
+        'task': {
+            'type': 'ZaloSliderPhoneTask',
+            'imageBase64': 'BASE64_BODY_HERE'
+        }
+    }
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ZaloSliderPhoneTask',
+        'imageBase64' => 'BASE64_BODY_HERE'
+    ]
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ sẽ trả về `errorId = 1` cùng với `errorCode` là mã lỗi.
+
+## 2. Nhận kết quả yêu cầu
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "start": {
+      "x": 100,
+      "y": 250
+    },
+    "end": {
+      "x": 300,
+      "y": 250
+    }
+  }
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong `solution`.
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `solution.start.x` | `Number` | Tọa độ X điểm bắt đầu kéo (mảnh ghép) |
+| `solution.start.y` | `Number` | Tọa độ Y điểm bắt đầu kéo (mảnh ghép) |
+| `solution.end.x` | `Number` | Tọa độ X điểm thả (vị trí đích) |
+| `solution.end.y` | `Number` | Tọa độ Y điểm thả (vị trí đích) |
+
+<Tip>
+  Mô phỏng thao tác chạm trên app: `touchstart` tại `start` → `touchmove` theo quỹ đạo tự nhiên đến `end` → `touchend`. Tránh di chuyển thẳng tuyến tính quá nhanh để giảm khả năng bị phát hiện là bot.
+</Tip>
+
+Đang xử lý:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ sẽ trả về `errorId = 0` và `status = processing` khi yêu cầu đang được xử lý. Vui lòng chờ 2 giây rồi yêu cầu lại.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ sẽ trả về `errorId = 1` khi xử lý thất bại.

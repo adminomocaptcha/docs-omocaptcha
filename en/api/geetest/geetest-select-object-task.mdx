@@ -1,0 +1,189 @@
+---
+title: "GeetestSelectObjectTask"
+sidebarTitle: "GeetestSelectObjectTask"
+description: "Solve Geetest Select Object captcha - pick images matching the anchor"
+---
+
+Select object captcha is a common image verification. The user selects grid cells whose subject matches the requested anchor.
+
+<Frame>
+  <img
+    src="/images/geetest-select-object-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+**Request**
+
+```text
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account key |
+| `task.type` | `String` | ✅ | `GeetestSelectObjectTask` |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded 3×3 grid image <br /><br /><img src="/images/geetest-select-object-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.question` | `String` | ✅ | Captcha question (e.g. `Select 3 images with`) |
+| `task.anchor` | `String` | ✅ | Base64-encoded anchor image (shown right after the question) <br /><br /><img src="/images/geetest-select-object-anchor.png" style={{ maxWidth: "120px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestSelectObjectTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "question": "Select 3 images with",
+      "anchor": "BASE64_ICON_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'GeetestSelectObjectTask',
+    imageBase64: 'BASE64_BODY_HERE',
+    question: 'Select 3 images with',
+    anchor: 'BASE64_ICON_HERE'
+  }
+});
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'GeetestSelectObjectTask',
+        'imageBase64': 'BASE64_BODY_HERE',
+        'question': 'Select 3 images with',
+        'anchor': 'BASE64_ICON_HERE'
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+  'clientKey' => 'OMO_API_KEY',
+  'task' => [
+    'type' => 'GeetestSelectObjectTask',
+    'imageBase64' => 'BASE64_BODY_HERE',
+    'question' => 'Select 3 images with',
+    'anchor' => 'BASE64_ICON_HERE'
+  ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` with a `taskId` on success.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` and an `errorCode`.
+
+## 2. Get task result
+
+**Request**
+
+```text
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "objects": [0, 1, 6]
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the answer from `solution.objects`.
+
+<Info>
+  `objects` is the list of matching cell indices (0–8), counted left-to-right, top-to-bottom:
+
+  - Row 1: `0`, `1`, `2`
+  - Row 2: `3`, `4`, `5`
+  - Row 3: `6`, `7`, `8`
+</Info>
+
+Processing:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing`. Wait 2 seconds and retry.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1`.

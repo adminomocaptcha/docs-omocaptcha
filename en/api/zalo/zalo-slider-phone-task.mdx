@@ -1,0 +1,195 @@
+---
+title: "ZaloSliderPhoneTask"
+sidebarTitle: "ZaloSliderPhoneTask"
+description: "Solve Zalo mobile slider drag-and-drop captcha"
+---
+
+Drag-and-drop on mobile app is a common type of image verification.
+
+<Frame>
+  <img
+    src="/images/zalo-slider-phone-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account API key |
+| `task.type` | `String` | ✅ | Captcha service class name: `ZaloSliderPhoneTask` |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded screenshot image <br /><br /><img src="/images/zalo-slider-phone-modal.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ZaloSliderPhoneTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ZaloSliderPhoneTask',
+    imageBase64: 'BASE64_BODY_HERE'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.omocaptcha.com/v2/createTask',
+    json={
+        'clientKey': 'OMO_API_KEY',
+        'task': {
+            'type': 'ZaloSliderPhoneTask',
+            'imageBase64': 'BASE64_BODY_HERE'
+        }
+    }
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ZaloSliderPhoneTask',
+        'imageBase64' => 'BASE64_BODY_HERE'
+    ]
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` on success.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` with `errorCode` as the error code.
+
+## 2. Get task result
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "start": {
+      "x": 100,
+      "y": 250
+    },
+    "end": {
+      "x": 300,
+      "y": 250
+    }
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the result from `solution`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.start.x` | `Number` | X coordinate of drag start point (puzzle piece) |
+| `solution.start.y` | `Number` | Y coordinate of drag start point (puzzle piece) |
+| `solution.end.x` | `Number` | X coordinate of drop point (target hole) |
+| `solution.end.y` | `Number` | Y coordinate of drop point (target hole) |
+
+<Tip>
+  Simulate touch gestures on the app: `touchstart` at `start` → `touchmove` along a natural trajectory to `end` → `touchend`. Avoid linear or overly fast movement to reduce the chance of being detected as a bot.
+</Tip>
+
+Processing:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing` while the task is still being processed. Wait 2 seconds and try again.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1` on failure.

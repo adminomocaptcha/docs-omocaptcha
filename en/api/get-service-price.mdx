@@ -1,0 +1,105 @@
+---
+title: "Get Service Price"
+description: "Fetch service packages and their prices"
+sidebarTitle: "Get Service Price"
+---
+
+List available combo packages and the captcha types they cover.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getServicePrice
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `type` | `String` | ❌ | Defaults to `"service"`. Pass `"package"` to fetch combo packages. |
+
+```json
+{
+  "type": "package"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "packages": [
+    {
+      "name": "Combo Funcaptcha",
+      "price": "0.15",
+      "durationMonths": 1,
+      "services": [
+        { "type": "FuncaptchaImageTask", "name": "FunCaptcha Image" }
+      ]
+    },
+    {
+      "name": "Combo TikTok",
+      "price": "0.45",
+      "durationMonths": 1,
+      "services": [
+        { "type": "TiktokSelectObjectWebTask", "name": "Tiktok (Select object - Web)" },
+        { "type": "TiktokSliderWebTask", "name": "TikTok (Slider - Web)" }
+      ]
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
+### Response Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `String` | Package name |
+| `price` | `String` | Monthly price (USD, string to preserve decimal precision) |
+| `durationMonths` | integer | Number of months the package is valid |
+| `services` | `Array` | Captcha types covered. Each item: `{type, name}` |
+
+## Public endpoint
+
+<Note>
+  This endpoint **does not require authentication** — anyone can query it to view pricing.
+</Note>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getServicePrice \
+  -H "Content-Type: application/json" \
+  -d '{"type": "package"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getServicePrice", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ type: "package" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getServicePrice",
+    json={"type": "package"}
+)
+print(res.json())
+```
+
+</CodeGroup>

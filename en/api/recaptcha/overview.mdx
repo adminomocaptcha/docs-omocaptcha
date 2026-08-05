@@ -1,0 +1,189 @@
+---
+title: "RecaptchaV2TokenTask"
+description: "Solve reCAPTCHA v2 / v3 / Enterprise"
+sidebarTitle: "RecaptchaV2TokenTask"
+---
+
+**reCAPTCHA v2** — also known as the _I'M NOT A ROBOT_ captcha — is one of Google's most common captchas.
+
+<Frame>
+  ![reCAPTCHA v2 - I'm not a robot](/images/recaptcha-v2-token.png)
+</Frame>
+
+First you need to find the value of the `data-sitekey` parameter in the page source. Open **DevTools** and locate the element with the `data-sitekey` attribute:
+
+```html
+<div id="recaptcha-demo"
+     class="g-recaptcha"
+     data-sitekey="6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-"
+     data-callback="onSuccess"
+     data-action="action">
+```
+
+## 1. Create task
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your account API key |
+| `task.type` | `String` | ✅ | Captcha service class name (`RecaptchaV2TokenTask`) |
+| `task.websiteURL` | `String` | ✅ | Target page URL. Can be anywhere on the site, including member areas. Our workers don't navigate there — they simulate the visit |
+| `task.websiteKey` | `String` | ✅ | reCAPTCHA site key (the `data-sitekey` value) |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "RecaptchaV2TokenTask",
+      "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
+      "websiteKey": "6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "RecaptchaV2TokenTask",
+      websiteURL: "https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
+      websiteKey: "6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "RecaptchaV2TokenTask",
+            "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
+            "websiteKey": "6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "RecaptchaV2TokenTask",
+        "websiteURL" => "https://lessons.zennolab.com/captchas/recaptcha/v2_simple.php?level=high",
+        "websiteKey" => "6Lcg7CMUAAAAANphynKgn9YAgA4tQ2KI_iqRyTwd"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Error
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` and `taskId` → success
+- `errorId = 1` and `errorCode` → failed (see [Error Codes](/en/api/error-codes))
+
+## 2. Retrieve the result
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "gRecaptchaResponse": "3AHJ_VuvYIBNBW5yyv0zRYJ75VkOKvhKj9_xGBJKnQimF72rfoq3Iy-DyGHMwLAo6a3"
+  }
+}
+```
+
+```json Processing
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Failed
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` & `status = "ready"` → read the token from `solution.gRecaptchaResponse`
+- `errorId = 0` & `status = "processing"` → job in progress, **wait 2 seconds** and retry
+- `errorId = 1` → failed, check `errorCode` in [Error Codes](/en/api/error-codes)
+
+<Tip>
+  In DevTools, find the `<textarea name="g-recaptcha-response">` element and paste the received token into it, then click the **Check** / submit button.
+</Tip>

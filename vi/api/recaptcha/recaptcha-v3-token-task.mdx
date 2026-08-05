@@ -1,0 +1,195 @@
+---
+title: "RecaptchaV3TokenTask"
+description: "Giải reCAPTCHA v3 (kiểm tra nền, trả về token + score)"
+sidebarTitle: "RecaptchaV3TokenTask"
+---
+
+reCAPTCHA-v3 là một loại hình ảnh xác thực rất phổ biến.
+
+<Frame>
+  ![Badge 'protected by reCAPTCHA' — dấu hiệu nhận biết reCAPTCHA v3](/images/recaptcha-v3-badge.png)
+</Frame>
+
+Đầu tiên, bạn cần tìm giá trị của tham số `data-sitekey` trong mã nguồn của trang web. Mở **DevTools** trong trình duyệt và tìm phần tử có thuộc tính `data-sitekey`:
+
+```html
+<div id="recaptcha-demo"
+     class="g-recaptcha"
+     data-sitekey="6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-"
+     data-callback="onSuccess"
+     data-action="action">
+```
+
+## 1. Tạo yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải (`RecaptchaV3TokenTask`) |
+| `task.websiteURL` | `String` | ✅ | Địa chỉ của trang web đích. Có thể đặt ở bất kỳ đâu trên trang, kể cả khu vực thành viên. Nhân viên không điều hướng đến đó mà mô phỏng chuyến thăm |
+| `task.websiteKey` | `String` | ✅ | Site key của reCAPTCHA (giá trị `data-sitekey`) |
+| `task.isEnterprise` | `Boolean` | ✅ | Có phải captcha loại **Enterprise** hay không |
+| `task.pageAction` | `String` | ✅ | Giá trị tham số action. Do chủ trang đặt trong thuộc tính `data-action` của thẻ `div` reCAPTCHA, hoặc truyền qua tuỳ chọn của `grecaptcha.execute('websiteKey', { action: 'myAction' })` |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "RecaptchaV3TokenTask",
+      "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+      "websiteKey": "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+      "isEnterprise": true,
+      "pageAction": "myverify"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "RecaptchaV3TokenTask",
+      websiteURL: "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+      websiteKey: "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+      isEnterprise: true,
+      pageAction: "myverify"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "RecaptchaV3TokenTask",
+            "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+            "websiteKey": "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+            "isEnterprise": True,
+            "pageAction": "myverify"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "RecaptchaV3TokenTask",
+        "websiteURL" => "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+        "websiteKey" => "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+        "isEnterprise" => true,
+        "pageAction" => "myverify"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` và `taskId` → thành công
+- `errorId = 1` và `errorCode` → thất bại (tra [Bảng mã lỗi](/vi/api/bang-ma-loi))
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "gRecaptchaResponse": "3AHJ_VuvYIBNBW5yyv0zRYJ75VkOKvhKj9_xGBJKnQimF72rfoq3Iy-DyGHMwLAo6a3"
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` & `status = "ready"` → đọc token trong `solution.gRecaptchaResponse`
+- `errorId = 0` & `status = "processing"` → đang xử lý, **chờ 2 giây** rồi thử lại
+- `errorId = 1` → thất bại, tra `errorCode` trong [Bảng mã lỗi](/vi/api/bang-ma-loi)

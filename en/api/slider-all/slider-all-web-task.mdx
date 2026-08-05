@@ -1,0 +1,207 @@
+---
+title: "SliderAllWebTask"
+sidebarTitle: "SliderAllWebTask"
+description: "Generic web drag-and-drop (slider) captcha solver — returns the target coordinates where the puzzle piece must be dropped."
+---
+
+Drag-and-drop is a very common captcha style on the web. `SliderAllWebTask` is a generic solver for puzzle-piece captchas: you send the background image (with the puzzle hole) and the display size, and the API returns the target coordinates where the piece must be dropped.
+
+<Frame>
+  <img
+    src="/images/slider-all-web-task.png"
+    alt="SliderAllWebTask example"
+    style={{ maxWidth: "460px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create a task
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your client account key |
+| `task.type` | `String` | ✅ | Captcha service class name: `SliderAllWebTask` |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded background image (with the puzzle hole) |
+| `task.widthView` | `Number` | ✅ | Image display width on the web page (px) |
+| `task.heightView` | `Number` | ❌ | Image display height on the web page (px) |
+
+<Warning>
+  `widthView` / `heightView` must match the **actual rendered size** in the browser, not the original image size. Returned coordinates use this coordinate system.
+</Warning>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "SliderAllWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 300,
+      "heightView": 150
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "SliderAllWebTask",
+      imageBase64: "BASE64_BODY_HERE",
+      widthView: 300,
+      heightView: 150,
+    },
+  }),
+});
+const data = await res.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "SliderAllWebTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "widthView": 300,
+            "heightView": 150,
+        },
+    },
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$payload = [
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'SliderAllWebTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'widthView' => 300,
+        'heightView' => 150,
+    ],
+];
+
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` when the task is created.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` with an `errorCode`.
+
+## 2. Get the result
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "rects": [
+      { "x": 237, "y": 70, "w": 53, "h": 47 }
+    ]
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the answer from `solution.rects`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `x` | `Number` | X coordinate (px) of the top-left corner of the drop target |
+| `y` | `Number` | Y coordinate (px) of the top-left corner of the drop target |
+| `w` | `Number` | Width of the target area (px) |
+| `h` | `Number` | Height of the target area (px) |
+
+<Tip>
+  Coordinates are expressed in the `widthView` × `heightView` system you sent. If the page renders the image at a different size, scale accordingly before simulating the drag.
+</Tip>
+
+Processing:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `status = processing` — poll again in ~2 seconds.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1` when solving fails.

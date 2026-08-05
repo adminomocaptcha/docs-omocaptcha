@@ -1,0 +1,299 @@
+---
+title: "HcaptchaImageTask"
+description: "Giải hCaptcha dạng hình ảnh (grid / canvas click / canvas drag)"
+sidebarTitle: "HcaptchaImageTask"
+---
+
+hCaptcha còn được gọi là captcha **TÔI KHÔNG PHẢI ROBOT**, hCaptcha là một loại hình ảnh xác thực rất phổ biến.
+
+<Columns cols={3}>
+  <Frame caption="Kéo canvas — Kéo các miếng ghép để hoàn thành hình">
+    ![hCaptcha drag canvas puzzle](/images/hcaptcha-drag.png)
+  </Frame>
+
+  <Frame caption="Grid có anchor — Chọn các đối tượng có thể đặt lên bề mặt">
+    ![hCaptcha grid with anchor images](/images/hcaptcha-canvas.png)
+  </Frame>
+
+  <Frame caption="Grid — Chọn tất cả dụng cụ nấu ăn và thiết bị">
+    ![hCaptcha grid challenge](/images/hcaptcha-grid.png)
+  </Frame>
+</Columns>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải (`HcaptchaImageTask`) |
+| `task.anchors` | array\<string\> | ✅ | Mảng các hình ảnh captcha phần tiêu đề được mã hoá thành base64 (nếu có; nếu không, truyền mảng rỗng `[]`) |
+| `task.queries` | array\<string\> | ✅ | Mảng các hình ảnh captcha được mã hoá thành base64 (dạng **grid** truyền 9 ảnh theo thứ tự trên DOM, dạng **canvas** truyền 1 ảnh) |
+| `task.question` | `String` | ✅ | Câu hỏi của thử thách captcha |
+| `task.isScreenshot` | `Boolean` | ❌ | Đặt `true` nếu chỉ gửi 1 ảnh chụp màn hình duy nhất (chứa cả hình captcha và câu hỏi) |
+
+<Tip>
+  Có thể gửi 1 ảnh chụp màn hình chứa cả hình captcha và câu hỏi — kèm cờ `isScreenshot: true` và bỏ qua `question`, `anchors`.
+</Tip>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "HcaptchaImageTask",
+      "anchors": ["base64_image_1", "base64_image_2"],
+      "queries": ["base64_image_1", "base64_image_2"],
+      "question": "Pick all the cooking utensils and equipment"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "HcaptchaImageTask",
+      anchors: ["base64_image_1", "base64_image_2"],
+      queries: ["base64_image_1", "base64_image_2"],
+      question: "Pick all the cooking utensils and equipment"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "HcaptchaImageTask",
+            "anchors": ["base64_image_1", "base64_image_2"],
+            "queries": ["base64_image_1", "base64_image_2"],
+            "question": "Pick all the cooking utensils and equipment"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "HcaptchaImageTask",
+        "anchors" => ["base64_image_1", "base64_image_2"],
+        "queries" => ["base64_image_1", "base64_image_2"],
+        "question" => "Pick all the cooking utensils and equipment"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+Hoặc chỉ gửi **1 ảnh chụp màn hình** (chứa cả hình captcha lẫn câu hỏi):
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "task": {
+    "type": "HcaptchaImageTask",
+    "queries": ["base64_image"],
+    "isScreenshot": true
+  }
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` và `taskId` → thành công
+- `errorId = 1` và `errorCode` → thất bại (tra [Bảng mã lỗi](/vi/api/bang-ma-loi))
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Tuỳ vào dạng thử thách, `solution` sẽ trả về theo một trong ba định dạng dưới đây.
+
+### 2a. Kết quả dạng Grid
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "objects": [1, 3, 8]
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `solution.objects` → mảng chỉ số các ô cần nhấp vào (từ `0` hoặc `1` tuỳ layout, theo thứ tự DOM).
+
+### 2b. Kết quả dạng click canvas
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "type": "click",
+    "coords": [
+      [398, 347]
+    ]
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `solution.type = "click"` → mỗi phần tử trong `coords` là một cặp `[x, y]` cần nhấp trên canvas.
+
+### 2c. Kết quả dạng kéo miếng ghép canvas
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "type": "drag",
+    "box": [
+      { "start": [446, 200], "end": [100, 224] },
+      { "start": [455, 300], "end": [139, 190] }
+    ]
+  }
+}
+```
+
+```json Đang xử lý
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `solution.type = "drag"` → mỗi phần tử trong `box` gồm điểm `start` `[x, y]` và điểm `end` `[x, y]`, mô phỏng thao tác kéo miếng ghép từ `start` đến `end`.
+
+<Note>
+  Nhớ chờ **2 giây** giữa các lần gọi `getTaskResult` khi `status = "processing"`.
+</Note>

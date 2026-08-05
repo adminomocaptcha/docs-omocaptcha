@@ -1,0 +1,174 @@
+---
+title: "GeetestSliderWebTask"
+sidebarTitle: "GeetestSliderWebTask"
+description: "Solve Geetest slider captcha on web"
+---
+
+Web slider is a common Geetest captcha type.
+
+<Frame>
+  <img
+    src="/images/geetest-slider-web.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account key |
+| `task.type` | `String` | ✅ | Captcha service class name: `GeetestSliderWebTask` |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded image |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "GeetestSliderWebTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "GeetestSliderWebTask",
+      imageBase64: "BASE64_BODY_HERE"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "OMO_API_KEY",
+    "task": {
+        "type": "GeetestSliderWebTask",
+        "imageBase64": "BASE64_BODY_HERE"
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "GeetestSliderWebTask",
+        "imageBase64" => "BASE64_BODY_HERE"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Server returns `errorId = 0` and a `taskId` on success.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Server returns `errorId = 1` with the corresponding `errorCode`.
+
+## 2. Get task result
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+Server returns `errorId = 0` and `status = ready`. Read the answer in the `solution` field.
+
+<Tip>
+  `solution.end` is the target end position (in original image pixels) the slider should be dragged to. Compute drag distance by subtracting the slider's initial x from `end.x`.
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Server returns `errorId = 0` and `status = processing`. Wait 2 seconds and retry.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Server returns `errorId = 1` when the task fails.

@@ -1,0 +1,196 @@
+---
+title: "TiktokSliderPhoneTask"
+sidebarTitle: "TiktokSliderPhoneTask"
+description: "Solve Tiktok slider (drag & drop) captcha on the phone version."
+---
+
+Slider drag & drop on phone is a common captcha type. The user drags a small puzzle piece to the correct spot on the background image.
+
+<Frame caption="Example of Tiktok slider captcha on phone">
+  <img
+    src="/images/tiktok-slider-phone-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create a task
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your client API key |
+| `task.type` | `String` | ✅ | Captcha service class name |
+| `task.imageBase64` | `String` | ✅ | Screenshot of the captcha encoded as base64 <br /><br /><img src="/images/tiktok-slider-phone-modal.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+### Code samples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "TiktokSliderPhoneTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'TiktokSliderPhoneTask',
+    imageBase64: 'BASE64_BODY_HERE',
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'TiktokSliderPhoneTask',
+        'imageBase64': 'BASE64_BODY_HERE',
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'TiktokSliderPhoneTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` when the task is created successfully.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` and an `errorCode`. See the [Error codes](/en/api/error-codes) list.
+
+## 2. Get the task result
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "start": {
+      "x": 50,
+      "y": 30
+    },
+    "end": {
+      "x": 100,
+      "y": 70
+    },
+    "end2": {
+      "x": 100,
+      "y": 70
+    }
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the answer inside `solution`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.start.x` | Number | Puzzle piece starting **X** coordinate (px) |
+| `solution.start.y` | Number | Puzzle piece starting **Y** coordinate (px) |
+| `solution.end.x` | Number | Target **X** coordinate to drag the piece to (px) |
+| `solution.end.y` | Number | Target **Y** coordinate to drag the piece to (px) |
+| `solution.end2.x` | Number | Alternate target **X** coordinate (px) |
+| `solution.end2.y` | Number | Alternate target **Y** coordinate (px) |
+
+<Tip>
+  Coordinates are in the pixel space of the original image you submitted. Combine `start` and `end` to compute the drag distance, then simulate a natural touch gesture (touchstart → touchmove → touchend) on the phone.
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing`. Wait **2 seconds** and query again.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1`. See details at [Error codes](/en/api/error-codes).

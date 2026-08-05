@@ -1,0 +1,195 @@
+---
+title: "RecaptchaV3TokenTask"
+description: "Solve reCAPTCHA v3 (background check, returns token + score)"
+sidebarTitle: "RecaptchaV3TokenTask"
+---
+
+reCAPTCHA-v3 is a very common verification captcha.
+
+<Frame>
+  !['protected by reCAPTCHA' badge — indicator of reCAPTCHA v3](/images/recaptcha-v3-badge.png)
+</Frame>
+
+First, find the `data-sitekey` parameter in the source of the target page. Open your browser **DevTools** and look for the element that has the `data-sitekey` attribute:
+
+```html
+<div id="recaptcha-demo"
+     class="g-recaptcha"
+     data-sitekey="6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-"
+     data-callback="onSuccess"
+     data-action="action">
+```
+
+## 1. Create task
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your account API key |
+| `task.type` | `String` | ✅ | Captcha service class name (`RecaptchaV3TokenTask`) |
+| `task.websiteURL` | `String` | ✅ | Target page URL. Can be located anywhere on the site, even in members-only areas. Our workers do not navigate there — they simulate the visit |
+| `task.websiteKey` | `String` | ✅ | reCAPTCHA site key (the `data-sitekey` value) |
+| `task.isEnterprise` | `Boolean` | ✅ | Whether this is an **Enterprise** captcha |
+| `task.pageAction` | `String` | ✅ | Action parameter value. Set by the site owner via the `data-action` attribute of the reCAPTCHA `div`, or passed inside the options of `grecaptcha.execute('websiteKey', { action: 'myAction' })` |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "RecaptchaV3TokenTask",
+      "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+      "websiteKey": "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+      "isEnterprise": true,
+      "pageAction": "myverify"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "RecaptchaV3TokenTask",
+      websiteURL: "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+      websiteKey: "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+      isEnterprise: true,
+      pageAction: "myverify"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "RecaptchaV3TokenTask",
+            "websiteURL": "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+            "websiteKey": "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+            "isEnterprise": True,
+            "pageAction": "myverify"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "RecaptchaV3TokenTask",
+        "websiteURL" => "https://lessons.zennolab.com/captchas/recaptcha/v3.php?level=beta",
+        "websiteKey" => "6Le0xVgUAAAAAIt20XEB4rVhYOODgTl00d8juDob",
+        "isEnterprise" => true,
+        "pageAction" => "myverify"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Failure
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` and `taskId` → success
+- `errorId = 1` and `errorCode` → failure (see [Error codes](/en/api/error-codes))
+
+## 2. Retrieve the result
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "gRecaptchaResponse": "3AHJ_VuvYIBNBW5yyv0zRYJ75VkOKvhKj9_xGBJKnQimF72rfoq3Iy-DyGHMwLAo6a3"
+  }
+}
+```
+
+```json Processing
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Failure
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` & `status = "ready"` → read the token in `solution.gRecaptchaResponse`
+- `errorId = 0` & `status = "processing"` → still processing, **wait 2 seconds** and retry
+- `errorId = 1` → failure, look up `errorCode` in the [Error codes](/en/api/error-codes) table

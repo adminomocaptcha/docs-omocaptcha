@@ -1,0 +1,189 @@
+---
+title: "TiktokSliderWebTask"
+sidebarTitle: "TiktokSliderWebTask"
+description: "Solve Tiktok slider (drag & drop) captcha on the web."
+---
+
+Slider on the web is a common captcha type. The user needs to drag a puzzle piece to the correct position on the background image.
+
+<Frame caption="Example of Tiktok slider captcha">
+  <img
+    src="/images/tiktok-slider-modal.png"
+    style={{ maxWidth: "720px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client account API key |
+| `task.type` | `String` | ✅ | Captcha service class name: `TiktokSliderWebTask` |
+| `task.imageBase64` | `String` | ✅ | Screenshot encoded as base64 (without `data:image/...;base64,` prefix)<br /><br /><img src="/images/tiktok-slider-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.widthView` | `Number` | ✅ | Rendered image width on the web (px). In DevTools, right-click the captcha image → **Inspect**, then look at **Rendered size** (e.g. `340 × 212 px`) — the first value is `widthView`.<br /><br /><img src="/images/tiktok-slider-width-view.png" style={{ maxWidth: "320px", width: "100%" }} /> |
+
+### Sample code
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "TiktokSliderWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 340
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'TiktokSliderWebTask',
+    imageBase64: 'BASE64_BODY_HERE',
+    widthView: 340,
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'TiktokSliderWebTask',
+        'imageBase64': 'BASE64_BODY_HERE',
+        'widthView': 340,
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'TiktokSliderWebTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'widthView' => 340,
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` on success.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` and the corresponding `errorCode`. See the [Error codes](/en/api/error-codes) list.
+
+## 2. Get task result
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the result from the `solution` field.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.end.x` | Number | Target **X** coordinate to drag the puzzle piece to (px, relative to `widthView`) |
+| `solution.end.y` | Number | Target **Y** coordinate to drag the puzzle piece to (px) |
+
+<Tip>
+  `end` is the **target position** of the puzzle piece on the image (scaled to `widthView`). Combine it with the original slider button position to compute the drag distance, then simulate a natural mouse drag (mousedown → mousemove → mouseup).
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing`. Please wait **2 seconds** and retry.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1`. See details in [Error codes](/en/api/error-codes).

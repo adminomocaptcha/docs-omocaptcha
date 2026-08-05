@@ -1,0 +1,350 @@
+---
+title: "ShopeeSliderWebTask"
+sidebarTitle: "ShopeeSliderWebTask"
+description: "Giải captcha kéo thả (slider) của Shopee trên web."
+---
+
+Captcha Shopee là một loại hình ảnh xác thực phổ biến. Người dùng cần kéo mảnh ghép nhỏ vào đúng vị trí trên ảnh nền để hoàn thành xác minh.
+
+<Frame caption="Ví dụ captcha kéo thả của Shopee">
+  <img
+    src="/images/shopee-slider-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+<Info>
+  `ShopeeSliderWebTask` hỗ trợ **hai dạng**:
+
+  - **Dạng thường** — kéo mảnh ghép theo trục ngang (trả về toạ độ `end`).
+  - **Dạng có quỹ đạo không xác định** (`typeCaptcha = "rotate"`) — kéo mảnh ghép theo quỹ đạo bất kỳ (trả về `point`).
+</Info>
+
+## 1a. Tạo yêu cầu — Dạng kéo thả thường
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa API tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64s` | `Array of String` | ✅ | Mảng gồm 2 chuỗi base64<br /><img src="/images/shopee-slider-mask.png" style={{ maxWidth: "90px", width: "100%" }} /> <img src="/images/shopee-slider-background.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+### Code mẫu
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ShopeeSliderWebTask",
+      "imageBase64s": [
+        "BASE64_MASK_BODY_HERE",
+        "BASE64_BACKGROUND_BODY_HERE"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ShopeeSliderWebTask',
+    imageBase64s: [
+      'BASE64_MASK_BODY_HERE',
+      'BASE64_BACKGROUND_BODY_HERE',
+    ],
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'ShopeeSliderWebTask',
+        'imageBase64s': [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ShopeeSliderWebTask',
+        'imageBase64s' => [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+## 1b. Tạo yêu cầu — Dạng có quỹ đạo không xác định
+
+Dùng khi captcha yêu cầu kéo mảnh ghép theo **quỹ đạo bất kỳ** (không cố định theo trục ngang). Truyền thêm `typeCaptcha = "rotate"`.
+
+<Frame caption="Ví dụ captcha Shopee dạng quỹ đạo không xác định">
+  <img
+    src="/images/shopee-slider-rotate-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa API tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.typeCaptcha` | `String` | ✅ | Tên loại captcha, giá trị |
+| `task.imageBase64s` | `Array of String` | ✅ | Mảng gồm 2 chuỗi base64 <br /><br /><img src="/images/shopee-slider-rotate-mask.png" style={{ maxWidth: "90px", width: "100%" }} /> <img src="/images/shopee-slider-rotate-background.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+### Code mẫu
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ShopeeSliderWebTask",
+      "typeCaptcha": "rotate",
+      "imageBase64s": [
+        "BASE64_MASK_BODY_HERE",
+        "BASE64_BACKGROUND_BODY_HERE"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ShopeeSliderWebTask',
+    typeCaptcha: 'rotate',
+    imageBase64s: [
+      'BASE64_MASK_BODY_HERE',
+      'BASE64_BACKGROUND_BODY_HERE',
+    ],
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'ShopeeSliderWebTask',
+        'typeCaptcha': 'rotate',
+        'imageBase64s': [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ShopeeSliderWebTask',
+        'typeCaptcha' => 'rotate',
+        'imageBase64s' => [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` và `errorCode` tương ứng. Xem danh sách [Mã lỗi](/vi/api/bang-ma-loi).
+
+## 2a. Nhận kết quả — Dạng thường
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `solution.end.x` | Number | Tọa độ **X** đích cần kéo mảnh ghép đến (px) |
+| `solution.end.y` | Number | Tọa độ **Y** đích cần kéo mảnh ghép đến (px) |
+
+## 2b. Nhận kết quả — Dạng có quỹ đạo không xác định
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "point": {
+      "x": 153,
+      "y": 78
+    }
+  }
+}
+```
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `solution.point.x` | Number | Tọa độ **X** điểm đích cần đưa mảnh ghép tới (px) |
+| `solution.point.y` | Number | Tọa độ **Y** điểm đích cần đưa mảnh ghép tới (px) |
+
+<Tip>
+  Toạ độ được tính theo hệ pixel của ảnh nền gửi lên. Kết hợp vị trí ban đầu của mảnh ghép và toạ độ trả về để tính quãng đường, sau đó mô phỏng thao tác kéo (mousedown → mousemove → mouseup) với quỹ đạo tự nhiên.
+</Tip>
+
+**Đang xử lý:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing`. Vui lòng chờ **2 giây** rồi yêu cầu lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1`. Xem chi tiết tại [Mã lỗi](/vi/api/bang-ma-loi).

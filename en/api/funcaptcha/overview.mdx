@@ -1,0 +1,191 @@
+---
+title: "FuncaptchaImageTask"
+description: "Solve FunCaptcha (Arkose Labs) image challenges"
+sidebarTitle: "FuncaptchaImageTask"
+---
+
+FunCaptcha is a widely-used image-based captcha.
+
+<Columns cols={3}>
+  <Frame caption="Use the arrows to pick the image where all the darts add up to the number in the left image">
+    ![FunCaptcha darts challenge](/images/funcaptcha-darts.png)
+  </Frame>
+
+  <Frame caption="Use the arrows to rotate the object to face in the direction of the hand">
+    ![FunCaptcha rotate object challenge](/images/funcaptcha-rotate.png)
+  </Frame>
+
+  <Frame caption="Pick the image that is the correct way up">
+    ![FunCaptcha orientation challenge](/images/funcaptcha-orientation.png)
+  </Frame>
+</Columns>
+
+## 1. Create task
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+Content-Type: application/json
+```
+
+#### Body Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Your account API key |
+| `task.type` | `String` | ✅ | Captcha service class name (`FuncaptchaImageTask`) |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded captcha image (not a screenshot) |
+| `task.other` | `String` | ✅ | The captcha question text |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "FuncaptchaImageTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "other": "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "FuncaptchaImageTask",
+      imageBase64: "BASE64_BODY_HERE",
+      other: "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "FuncaptchaImageTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "other": "Use the arrows to pick the image where all the darts add up to the number in the left image"
+        }
+    }
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "FuncaptchaImageTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+        "other" => "Use the arrows to pick the image where all the darts add up to the number in the left image"
+    ]
+]));
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+```json Failure
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` with `taskId` → success
+- `errorId = 1` with `errorCode` → failure (see [Error Codes](/en/api/error-codes))
+
+## 2. Get task result
+
+### Request
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+Content-Type: application/json
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+<CodeGroup>
+
+```json Success
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "index": 1
+  }
+}
+```
+
+```json Processing
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+```json Failure
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+</CodeGroup>
+
+- `errorId = 0` with `status = "ready"` → read the answer from `solution.index`.
+- `errorId = 0` with `status = "processing"` → job is still running, wait **2 seconds** and retry.
+- `errorId = 1` → failure (see [Error Codes](/en/api/error-codes)).
+
+<Warning>
+  The server returns the **position of the correct image** in the sequence. When clicking the right-arrow button on the page, you must **subtract 1** because the captcha image occupies the first position.
+
+  Example: server returns `index = 5` → click the right arrow **4 times**.
+</Warning>

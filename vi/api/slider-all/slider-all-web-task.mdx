@@ -1,0 +1,207 @@
+---
+title: "SliderAllWebTask"
+sidebarTitle: "SliderAllWebTask"
+description: "Giải captcha kéo thả (slider) chung trên web — trả về toạ độ mảnh ghép cần đặt vào."
+---
+
+Kéo thả trên web là một loại hình ảnh xác thực phổ biến. `SliderAllWebTask` là bộ giải chung cho các captcha dạng ghép mảnh: bạn cung cấp ảnh nền (đã có lỗ ghép) cùng kích thước hiển thị, hệ thống trả về toạ độ vị trí cần thả mảnh ghép.
+
+<Frame>
+  <img
+    src="/images/slider-all-web-task.png"
+    alt="SliderAllWebTask example"
+    style={{ maxWidth: "460px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khoá tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha: `SliderAllWebTask` |
+| `task.imageBase64` | `String` | ✅ | Ảnh nền (đã có lỗ ghép) mã hoá Base64 |
+| `task.widthView` | `Number` | ✅ | Chiều rộng ảnh hiển thị trên web (px) |
+| `task.heightView` | `Number` | ❌ | Chiều cao ảnh hiển thị trên web (px) |
+
+<Warning>
+  `widthView` / `heightView` phải là kích thước **hiển thị thực tế** trên trình duyệt, không phải kích thước gốc của ảnh. Toạ độ trả về sẽ dựa trên hệ trục này.
+</Warning>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "SliderAllWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 300,
+      "heightView": 150
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "SliderAllWebTask",
+      imageBase64: "BASE64_BODY_HERE",
+      widthView: 300,
+      heightView: 150,
+    },
+  }),
+});
+const data = await res.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "SliderAllWebTask",
+            "imageBase64": "BASE64_BODY_HERE",
+            "widthView": 300,
+            "heightView": 150,
+        },
+    },
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$payload = [
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'SliderAllWebTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'widthView' => 300,
+        'heightView' => 150,
+    ],
+];
+
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` cùng `errorCode` là mã lỗi tương ứng.
+
+## 2. Nhận kết quả
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Thành công:
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "status": "ready",
+  "solution": {
+    "rects": [
+      { "x": 237, "y": 70, "w": 53, "h": 47 }
+    ]
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong `solution.rects`:
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `x` | `Number` | Toạ độ X (px) của góc trên-trái vị trí cần thả mảnh ghép |
+| `y` | `Number` | Toạ độ Y (px) của góc trên-trái vị trí cần thả mảnh ghép |
+| `w` | `Number` | Chiều rộng vùng đích (px) |
+| `h` | `Number` | Chiều cao vùng đích (px) |
+
+<Tip>
+  Toạ độ được tính theo hệ `widthView` × `heightView` bạn đã gửi. Nếu web hiển thị ảnh ở kích thước khác, hãy quy đổi tương ứng trước khi mô phỏng thao tác kéo.
+</Tip>
+
+Đang xử lý:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `status = processing` — yêu cầu đang được xử lý, hãy chờ ~2 giây rồi gọi lại.
+
+Thất bại:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1` khi giải thất bại.

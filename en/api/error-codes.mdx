@@ -1,0 +1,98 @@
+---
+title: "Error Codes"
+description: "All possible errorCode values returned by the V2 API"
+sidebarTitle: "Error Codes"
+---
+
+All V2 endpoints return **HTTP 200** with a body containing `errorId`, `errorCode`, and `errorDescription`. Below are every possible `errorCode` value.
+
+## Authentication & API key
+
+| `errorCode` | When | How to fix |
+| --- | --- | --- |
+| `ERROR_KEY_DOES_NOT_EXIST` | API key empty / invalid / non-existent / too short (\< 10 chars) / too long (\> 80 chars) | Verify your API key on the dashboard |
+
+## Packages
+
+| `errorCode` | When | How to fix |
+| --- | --- | --- |
+| `ERROR_PACKAGE_NOT_FOUND` | `PKG_` token points to a deleted package | Buy a new package |
+| `ERROR_PACKAGE_EXPIRED` | Package expired (past `dateEnd`) | Buy a new package |
+| `ERROR_PACKAGE_EXHAUSTED` | Package out of solves (`quantity = 0`) | Buy a new package or top up solves |
+| `ERROR_PACKAGE_NOT_SUPPORT` | Captcha type not covered by this package | Change captcha type or upgrade package |
+
+## Balance
+
+| `errorCode` | When | How to fix |
+| --- | --- | --- |
+| `ERROR_ZERO_BALANCE` | Both `balance` and `voucherBalance` are 0 | Top up |
+| `ERROR_INSUFFICIENT_BALANCE` | Funds available but less than this captcha's price | Top up or pick a cheaper captcha |
+
+## Input & system
+
+| `errorCode` | When | How to fix |
+| --- | --- | --- |
+| `ERROR_TYPE_JOB_REQUIRED` | Body missing `task.type` | Fix request |
+| `ERROR_TASK_NOT_SUPPORTED` | `task.type` doesn't exist or is misspelled | See [service list](/en/api/get-service-list) |
+| `ERROR_TASK_IS_MAINTENANCE` | Captcha type temporarily under maintenance | Retry in a few minutes |
+| `ERROR_SERVICE_UNAVAILABLE` | System temporarily busy | Retry with exponential backoff |
+| `ERROR_REDIS_UNAVAILABLE` | System error after money was deducted — refund is automatic | Retry immediately; money not lost |
+
+## Result
+
+| `errorCode` | When | How to fix |
+| --- | --- | --- |
+| `ERROR_TASK_NOT_FOUND` | `taskId` invalid or TTL expired | Create a new task |
+| `ERROR_TASK_KEY_MISMATCH` | Client used a different API key than the one that created the task | Use the exact key that created the task |
+| `ERROR_REDIS_JOB_DATA` | Task data read error (rare) | Retry once, then create a new task |
+| `ERROR_JOB_STATUS` | Job failed (solver wrong / timeout) — refunded automatically | Create a new task or accept |
+
+## Client-side handling rule
+
+```javascript
+const resp = await fetch('https://api.omocaptcha.com/v2/createTask', {...});
+const body = await resp.json();
+
+if (body.errorId !== 0) {
+  switch (body.errorCode) {
+    case 'ERROR_ZERO_BALANCE':
+    case 'ERROR_INSUFFICIENT_BALANCE':
+      // Stop. Prompt user to top up.
+      return notifyTopUp();
+
+    case 'ERROR_PACKAGE_EXHAUSTED':
+    case 'ERROR_PACKAGE_EXPIRED':
+      // Stop. Prompt user to buy a new package.
+      return notifyBuyPackage();
+
+    case 'ERROR_KEY_DOES_NOT_EXIST':
+    case 'ERROR_TASK_KEY_MISMATCH':
+      // Stop. Invalid key.
+      return notifyInvalidKey();
+
+    case 'ERROR_TASK_IS_MAINTENANCE':
+    case 'ERROR_SERVICE_UNAVAILABLE':
+    case 'ERROR_REDIS_UNAVAILABLE':
+      // Retry with exponential backoff
+      return retryWithBackoff();
+
+    default:
+      // Log + surface error to user
+      console.error(body);
+  }
+}
+```
+
+## Important notes
+
+<Warning>
+  **HTTP status is always 200** for business errors. Only retry on **HTTP 5xx** (infrastructure errors).
+</Warning>
+
+<Info>
+  `errorDescription` is a human-readable string and may change. Use `errorCode` to switch logic.
+</Info>
+
+<Tip>
+  The OMOCaptcha API is compatible with most popular open-source solver SDKs.
+</Tip>

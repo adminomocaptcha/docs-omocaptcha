@@ -1,0 +1,198 @@
+---
+title: "Tiktok3DSelectObjectPhoneTask"
+sidebarTitle: "Tiktok3DSelectObjectPhoneTask"
+description: "Solve the captcha that asks users to pick 2 matching 3D objects on the TikTok mobile (phone) version."
+---
+
+# Tiktok3DSelectObjectPhoneTask
+
+Solve the captcha that asks the user to **pick 2 matching 3D objects** on the **mobile (phone)** version of TikTok. The user must click on **2 objects that have the same shape**.
+
+<Frame caption="Example of the 3D Select Object captcha on phone (Select 2 objects that are the same shape)">
+  <img
+    src="/images/tiktok-3d-select-phone.png"
+    style={{ maxWidth: "320px" }}
+  />
+</Frame>
+
+## 1. Create a task
+
+**Endpoint**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | String | ✅ | Your client account key |
+| `task.type` | String | ✅ | Captcha task class name — `Tiktok3DSelectObjectPhoneTask` |
+| `task.imageBase64` | String | ✅ | Screenshot of the challenge encoded in base64 |
+
+<Info>
+  The image must be the **cropped** challenge area (like the illustration above), without the modal header/footer.
+</Info>
+
+### Example request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "Tiktok3DSelectObjectPhoneTask",
+      "imageBase64": "BASE64_BODY_HERE"
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "OMO_API_KEY",
+    task: {
+      type: "Tiktok3DSelectObjectPhoneTask",
+      imageBase64: "BASE64_BODY_HERE",
+    },
+  }),
+});
+const data = await res.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/createTask",
+    json={
+        "clientKey": "OMO_API_KEY",
+        "task": {
+            "type": "Tiktok3DSelectObjectPhoneTask",
+            "imageBase64": "BASE64_BODY_HERE",
+        },
+    },
+)
+print(res.json())
+```
+
+```php PHP
+<?php
+$payload = [
+    "clientKey" => "OMO_API_KEY",
+    "task" => [
+        "type" => "Tiktok3DSelectObjectPhoneTask",
+        "imageBase64" => "BASE64_BODY_HERE",
+    ],
+];
+
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Success**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` on success.
+
+**Failure**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` with the error in `errorCode`.
+
+## 2. Get the task result
+
+**Endpoint**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+### Request
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "pointA": { "x": 50, "y": 30 },
+    "pointB": { "x": 100, "y": 70 }
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the result from `solution`:
+
+- `pointA` — coordinates of the first object (x, y).
+- `pointB` — coordinates of the second object (x, y).
+
+These two points correspond to the 2 objects that share the same shape.
+
+**Processing**
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing` — the task is being solved, wait **2 seconds** and try again.
+
+**Failure**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1` when solving fails.

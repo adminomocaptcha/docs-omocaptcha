@@ -1,0 +1,137 @@
+---
+title: "Tencent Slider"
+sidebarTitle: "Tencent Slider"
+description: "Solve Tencent slider captcha (global.captcha.gtimg.com) using SliderAllWebTask — the generic drag-and-drop solver."
+---
+
+<Frame>
+  <img
+    src="/images/tencent-slider-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+<Note>
+  Tencent slider is solved via **`SliderAllWebTask`** — the generic drag-and-drop solver for all providers. See the [SliderAllWebTask](/en/api/slider-all/overview) page for full details. This page is kept for reference with Tencent's actual `domain`.
+</Note>
+
+## 1. Create task
+
+**Endpoint:** `POST https://api.omocaptcha.com/v2/createTask`
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | API key from your account. |
+| `task.type` | `String` | ✅ | `SliderAllWebTask` |
+| `task.imageBase64` | `String` | ✅ | Background image, Base64-encoded.<br /><br /><img src="/images/tencent-slider-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.puzzle` | `String` | ✅ | Puzzle piece image, Base64-encoded.<br /><br /><img src="/images/tencent-slider-puzzle.png" style={{ maxWidth: "120px", width: "100%" }} /> |
+| `task.domain` | `String` | ✅ | Captcha domain, e.g. `global.captcha.gtimg.com`. |
+| `task.widthView` | `Number` | ✅ | Captcha widget width in the browser (px), e.g. `340`. |
+| `task.heightView` | `Number` | ✅ | Captcha widget height in the browser (px), e.g. `243`. |
+
+### Example request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "YOUR_API_KEY",
+    "task": {
+      "type": "SliderAllWebTask",
+      "imageBase64": "BASE64_BACKGROUND",
+      "puzzle": "BASE64_PUZZLE",
+      "domain": "global.captcha.gtimg.com",
+      "widthView": 340,
+      "heightView": 243
+    }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    clientKey: "YOUR_API_KEY",
+    task: {
+      type: "SliderAllWebTask",
+      imageBase64: "BASE64_BACKGROUND",
+      puzzle: "BASE64_PUZZLE",
+      domain: "global.captcha.gtimg.com",
+      widthView: 340,
+      heightView: 243
+    }
+  })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post("https://api.omocaptcha.com/v2/createTask", json={
+    "clientKey": "YOUR_API_KEY",
+    "task": {
+        "type": "SliderAllWebTask",
+        "imageBase64": "BASE64_BACKGROUND",
+        "puzzle": "BASE64_PUZZLE",
+        "domain": "global.captcha.gtimg.com",
+        "widthView": 340,
+        "heightView": 243
+    }
+})
+print(res.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.omocaptcha.com/v2/createTask");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+  "clientKey" => "YOUR_API_KEY",
+  "task" => [
+    "type" => "SliderAllWebTask",
+    "imageBase64" => "BASE64_BACKGROUND",
+    "puzzle" => "BASE64_PUZZLE",
+    "domain" => "global.captcha.gtimg.com",
+    "widthView" => 340,
+    "heightView" => 243
+  ]
+]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+echo curl_exec($ch);
+```
+
+</CodeGroup>
+
+### Example response
+
+```json
+{
+  "errorId": 0,
+  "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+## 2. Get result
+
+**Endpoint:** `POST https://api.omocaptcha.com/v2/getTaskResult`
+
+### Example response
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": { "x": 150, "y": 42 }
+  }
+}
+```
+
+`solution.end` is the drop-point coordinate in the background image's coordinate system.

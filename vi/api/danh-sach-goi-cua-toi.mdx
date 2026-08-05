@@ -1,0 +1,159 @@
+---
+title: "Danh sách gói của tôi"
+description: "Danh sách gói đã mua của tài khoản"
+sidebarTitle: "Danh sách gói của tôi"
+---
+
+Lấy danh sách các gói (package) tài khoản đã mua, kèm trạng thái hoạt động và số lượt giải còn lại.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getMyPackages
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | API key của tài khoản |
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "packages": [
+    {
+      "packageId": 1,
+      "packageName": "Combo Funcaptcha",
+      "tokenPackage": "PKG_R2MXPRMQWKXKETKT54MFJOWITOII...",
+      "remaining": 1006190,
+      "dateStart": "2024-12-11 14:50:11",
+      "dateEnd": "2028-02-09 00:19:30",
+      "isActive": true,
+      "services": [
+        { "type": "FuncaptchaImageTask", "name": "FunCaptcha Image" }
+      ]
+    },
+    {
+      "packageId": 2,
+      "packageName": "Combo TikTok",
+      "tokenPackage": "PKG_OTHER_TOKEN...",
+      "remaining": 0,
+      "dateStart": "2024-12-01 10:00:00",
+      "dateEnd": "2025-12-01 10:00:00",
+      "isActive": false,
+      "services": [
+        { "type": "TiktokSelectObjectWebTask", "name": "Tiktok (Chọn đối tượng - Web)" },
+        { "type": "TiktokSliderWebTask", "name": "TikTok (Kéo thả - Web)" }
+      ]
+    }
+  ]
+}
+```
+
+```json Chưa có gói
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "packages": []
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "API key does not exist"
+}
+```
+
+</CodeGroup>
+
+### Giải thích các trường
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `packageId` | integer | ID gói (tham chiếu với `getServicePrice` `type=package`) |
+| `packageName` | `String` | Tên gói |
+| `tokenPackage` | `String` | Token đặc biệt dạng `PKG_...` — dùng thay cho `clientKey` để trừ trực tiếp vào gói khi tạo task |
+| `remaining` | integer | Số lượt giải còn lại |
+| `dateStart` | `String` | Ngày bắt đầu hiệu lực |
+| `dateEnd` | `String` | Ngày hết hạn |
+| `isActive` | `Boolean` | `true` nếu gói chưa hết hạn, còn lượt giải, và đang hoạt động |
+| `services` | `Array` | Danh sách captcha type được cover bởi gói. Mỗi phần tử: `{type, name}` |
+
+<Info>
+  Tài khoản chưa mua gói nào sẽ nhận mảng `packages: []`. Xem [danh sách gói có sẵn](/vi/api/lay-thong-tin-goi-dich-vu) để mua.
+</Info>
+
+## Cách dùng `tokenPackage` để tạo task bằng gói
+
+Khi tạo captcha task, dùng `tokenPackage` thay cho `clientKey` thông thường — hệ thống sẽ tự trừ vào gói:
+
+```json POST /v2/createTask
+{
+  "clientKey": "PKG_R2MXPRMQWKXKETKT54MFJ...",
+  "task": {
+    "type": "FuncaptchaImageTask",
+    "imageBase64": "...",
+    "other": "..."
+  }
+}
+```
+
+<Tip>
+  Khi đó hệ thống trừ trực tiếp vào `remaining` của gói, **không** trừ vào `balance`.
+</Tip>
+
+## Khi nào gói hết lượt?
+
+<Warning>
+  Nếu `remaining = 0` hoặc `isActive = false`, gọi `createTask` với token gói đó sẽ trả về `ERROR_PACKAGE_EXHAUSTED` hoặc `ERROR_PACKAGE_EXPIRED`.
+</Warning>
+
+**Cách xử lý:** mua gói mới — gói cũ sẽ tự động ngưng hoạt động.
+
+## Ví dụ sử dụng
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getMyPackages \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "OMO_API_KEY"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getMyPackages", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getMyPackages",
+    json={"clientKey": "OMO_API_KEY"}
+)
+print(res.json())
+```
+
+</CodeGroup>

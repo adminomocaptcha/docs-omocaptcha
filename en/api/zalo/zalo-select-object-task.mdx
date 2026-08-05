@@ -1,0 +1,190 @@
+---
+title: "ZaloSelectObjectTask"
+sidebarTitle: "ZaloSelectObjectTask"
+description: "Solve Zalo select-object captcha"
+---
+
+Selecting objects is a popular type of image verification.
+
+<Frame>
+  <img
+    src="/images/zalo-select-object-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Create task
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/createTask
+```
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Customer account key |
+| `task.type` | `String` | ✅ | Captcha service class name to solve: `ZaloSelectObjectTask` |
+| `task.imageBase64` | `String` | ✅ | Base64-encoded 3x3 grid image <br /><br /><img src="/images/zalo-select-object-grid.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.other` | `String` | ✅ | Captcha question text (e.g. `Chọn tất cả ảnh có: biển báo giao thông`) <br /><br /><img src="/images/zalo-select-object-question.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ZaloSelectObjectTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "other": "Chọn tất cả ảnh có: biển báo giao thông"
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ZaloSelectObjectTask',
+    imageBase64: 'BASE64_BODY_HERE',
+    other: 'Chọn tất cả ảnh có: biển báo giao thông'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.omocaptcha.com/v2/createTask',
+    json={
+        'clientKey': 'OMO_API_KEY',
+        'task': {
+            'type': 'ZaloSelectObjectTask',
+            'imageBase64': 'BASE64_BODY_HERE',
+            'other': 'Chọn tất cả ảnh có: biển báo giao thông'
+        }
+    }
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ZaloSelectObjectTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'other' => 'Chọn tất cả ảnh có: biển báo giao thông'
+    ]
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and a `taskId` when the task is created successfully.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` along with an `errorCode`.
+
+## 2. Get task result
+
+**Request**
+
+```http
+POST https://api.omocaptcha.com/v2/getTaskResult
+```
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Response**
+
+Success:
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "objects": [0, 1, 2, 3]
+  }
+}
+```
+
+The server returns `errorId = 0` and `status = ready`. Read the result from `solution`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.objects` | `Array<Number>` | List of tile indices to select in the 3x3 grid, numbered `0` to `8` from left to right, top to bottom |
+
+<Tip>
+  The 3x3 grid is indexed as follows: top row `0, 1, 2`, middle row `3, 4, 5`, bottom row `6, 7, 8`. Click every tile whose index appears in `solution.objects`, then press the **Xác thực** (Verify) button.
+</Tip>
+
+Processing:
+
+```json
+{
+  "status": "processing",
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing` while the task is being processed. Please wait 2 seconds and retry.
+
+Failure:
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1` when processing fails.

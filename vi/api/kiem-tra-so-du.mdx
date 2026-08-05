@@ -1,0 +1,108 @@
+---
+title: "Kiểm tra số dư"
+description: "Kiểm tra số dư tài khoản hiện tại"
+sidebarTitle: "Kiểm tra số dư"
+---
+
+Lấy nhanh số dư hiện tại của tài khoản, gồm cả số dư khuyến mại.
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getBalance
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | API key của tài khoản |
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+## Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "balance": "50.00000",
+  "voucherBalance": "40.60000"
+}
+```
+
+```json Thành công (tokenPackage)
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "balance": "50.00000",
+  "voucherBalance": "40.60000",
+  "quantity": "1006190"
+}
+```
+
+```json Thất bại
+{
+  "errorId": 1,
+  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
+  "errorDescription": "API key does not exist"
+}
+```
+
+</CodeGroup>
+
+### Giải thích các trường
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `errorId` | integer | `0` = thành công, `1` = lỗi nghiệp vụ |
+| `errorCode` | `String` | Mã lỗi (rỗng nếu thành công) |
+| `errorDescription` | `String` | Mô tả chi tiết lỗi |
+| `balance` | `String` | Số dư chính (USD, kiểu chuỗi để giữ độ chính xác thập phân) |
+| `voucherBalance` | `String` | Số dư khuyến mại. Khi `balance` không đủ, hệ thống sẽ tự động dùng số dư này |
+| `quantity` | `String` | **Chỉ xuất hiện khi `clientKey` là tokenPackage dạng `PKG_...`** — số lượt giải còn lại của gói |
+
+<Tip>
+  Xem **Bảng mã lỗi** để biết danh sách đầy đủ các `errorCode`.
+</Tip>
+
+## Ví dụ sử dụng
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getBalance \
+  -H "Content-Type: application/json" \
+  -d '{"clientKey": "OMO_API_KEY"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getBalance", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
+});
+const data = await res.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getBalance",
+    json={"clientKey": "OMO_API_KEY"}
+)
+print(res.json())
+```
+
+</CodeGroup>

@@ -1,0 +1,350 @@
+---
+title: "ShopeeSliderWebTask"
+sidebarTitle: "ShopeeSliderWebTask"
+description: "Solve Shopee slider captcha on web."
+---
+
+Shopee slider captcha is a common image challenge. The user has to drag a small puzzle piece to the correct position on the background image.
+
+<Frame caption="Example of Shopee slider captcha">
+  <img
+    src="/images/shopee-slider-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+<Info>
+  `ShopeeSliderWebTask` supports **two modes**:
+
+  - **Regular slider** — drag horizontally (returns `end` coordinates).
+  - **Undetermined trajectory** (`typeCaptcha = "rotate"`) — drag along an arbitrary path (returns `point`).
+</Info>
+
+## 1a. Create task — Regular slider
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client API key |
+| `task.type` | `String` | ✅ | Captcha service class name (`ShopeeSliderWebTask`) |
+| `task.imageBase64s` | `Array of String` | ✅ | Array of 2 base64 strings: **\[mask image, background image\]** <br /><br /><img src="/images/shopee-slider-mask.png" style={{ maxWidth: "90px", width: "100%" }} /> <img src="/images/shopee-slider-background.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+### Code samples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ShopeeSliderWebTask",
+      "imageBase64s": [
+        "BASE64_MASK_BODY_HERE",
+        "BASE64_BACKGROUND_BODY_HERE"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ShopeeSliderWebTask',
+    imageBase64s: [
+      'BASE64_MASK_BODY_HERE',
+      'BASE64_BACKGROUND_BODY_HERE',
+    ],
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'ShopeeSliderWebTask',
+        'imageBase64s': [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ShopeeSliderWebTask',
+        'imageBase64s' => [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+The server returns `errorId = 0` and `taskId` on success.
+
+## 1b. Create task — Undetermined trajectory
+
+Used when the captcha requires dragging along an **arbitrary path** (not restricted to horizontal). Add `typeCaptcha = "rotate"`.
+
+<Frame caption="Example of Shopee undetermined-trajectory captcha">
+  <img
+    src="/images/shopee-slider-rotate-modal.png"
+    style={{ maxWidth: "360px", width: "100%" }}
+  />
+</Frame>
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Parameter | Type | Required | Description |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Client API key |
+| `task.type` | `String` | ✅ | Captcha service class name (`ShopeeSliderWebTask`) |
+| `task.typeCaptcha` | `String` | ✅ | Captcha type, value: `rotate` |
+| `task.imageBase64s` | `Array of String` | ✅ | Array of 2 base64 strings: **\[mask image, background image\]** <br /><br /><img src="/images/shopee-slider-rotate-mask.png" style={{ maxWidth: "90px", width: "100%" }} /> <img src="/images/shopee-slider-rotate-background.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+
+### Code samples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "ShopeeSliderWebTask",
+      "typeCaptcha": "rotate",
+      "imageBase64s": [
+        "BASE64_MASK_BODY_HERE",
+        "BASE64_BACKGROUND_BODY_HERE"
+      ]
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'ShopeeSliderWebTask',
+    typeCaptcha: 'rotate',
+    imageBase64s: [
+      'BASE64_MASK_BODY_HERE',
+      'BASE64_BACKGROUND_BODY_HERE',
+    ],
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'ShopeeSliderWebTask',
+        'typeCaptcha': 'rotate',
+        'imageBase64s': [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'ShopeeSliderWebTask',
+        'typeCaptcha' => 'rotate',
+        'imageBase64s' => [
+            'BASE64_MASK_BODY_HERE',
+            'BASE64_BACKGROUND_BODY_HERE',
+        ],
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 1` and the corresponding `errorCode`. See the [Error codes](/en/api/error-codes) list.
+
+## 2a. Get task result — Regular slider
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.end.x` | Number | **X** coordinate to drag the puzzle piece to (px) |
+| `solution.end.y` | Number | **Y** coordinate to drag the puzzle piece to (px) |
+
+## 2b. Get task result — Undetermined trajectory
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Success:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "point": {
+      "x": 153,
+      "y": 78
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `solution.point.x` | Number | **X** target coordinate to move the puzzle piece to (px) |
+| `solution.point.y` | Number | **Y** target coordinate to move the puzzle piece to (px) |
+
+<Tip>
+  Coordinates are in the pixel space of the uploaded background image. Combine the starting position of the puzzle piece with the returned coordinate to compute the path, then simulate the drag gesture (mousedown → mousemove → mouseup) along a natural trajectory.
+</Tip>
+
+**Processing:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+The server returns `errorId = 0` and `status = processing`. Wait **2 seconds** then retry.
+
+**Failure:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+The server returns `errorId = 1`. See details at [Error codes](/en/api/error-codes).

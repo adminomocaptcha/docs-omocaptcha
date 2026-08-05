@@ -1,0 +1,99 @@
+---
+title: "Set API KEY cho extension"
+description: "Cấu hình API Key cho extension OMOCaptcha"
+sidebarTitle: "Set API KEY cho extension"
+---
+
+Sau khi đã cài extension vào trình duyệt (xem [Cài extension từ file zip](/vi/huong-dan/cai-extension-tu-file-zip)), bạn có **3 cách** để thiết lập API Key cho extension:
+
+<CardGroup cols={3}>
+  <Card title="Cách 1" icon="mouse-pointer">
+    Nhập trực tiếp vào extension
+  </Card>
+
+  <Card title="Cách 2" icon="file-code">
+    Chỉnh sửa file `configs.json`
+  </Card>
+
+  <Card title="Cách 3" icon="link">
+    Dùng URL trên trình duyệt
+  </Card>
+</CardGroup>
+
+## Cách 1. Nhập trực tiếp vào extension
+
+Sau khi cài extension, bạn nhấp vào biểu tượng **tiện ích (extension icon)** trên thanh công cụ của trình duyệt để mở popup của extension.
+
+<Frame>
+  ![Nhấp biểu tượng extension](/images/huong-dan/set-api-key/01-click-extension-icon.png)
+</Frame>
+
+Trong popup vừa mở, hãy dán **API Key** của bạn vào ô **Your client key** rồi bấm ra ngoài để lưu.
+
+<Frame>
+  ![Nhập client key vào extension](/images/huong-dan/set-api-key/02-nhap-client-key.png)
+</Frame>
+
+<Tip>
+  Nếu chưa có API Key, hãy đăng nhập tại [omocaptcha.com](https://omocaptcha.com) và lấy API Key trong mục quản lý tài khoản.
+</Tip>
+
+## Cách 2. Nhập trực tiếp vào file trong extension
+
+Bấm vào [đây](https://drive.google.com/drive/folders/1) để đến thư mục chứa các extension. Mật khẩu giải nén là `12345`.
+
+Sau khi tải về và giải nén, ta tìm đến file **`configs.json`** trong thư mục extension.
+
+<Frame>
+  ![File configs.json trong thư mục extension](/images/huong-dan/set-api-key/03-file-configs-json.png)
+</Frame>
+
+Mở file lên bằng trình soạn thảo văn bản trên máy tính (Notepad, VS Code, Sublime Text…) và tìm tới dòng có văn bản **`YOUR_CLIEN_KEY`**. Thay API Key của bạn vào đó rồi lưu file lại.
+
+<Frame>
+  ![Sửa YOUR\_CLIEN\_KEY thành API Key của bạn](/images/huong-dan/set-api-key/04-sua-your-clien-key.png)
+</Frame>
+
+Ví dụ trước khi sửa:
+
+```json configs.json
+{
+  "api_key": "YOUR_CLIEN_KEY",
+  "power_on": true,
+  ...
+}
+```
+
+Sau khi sửa:
+
+```json configs.json
+{
+  "api_key": "abc123-your-real-api-key-xyz",
+  "power_on": true,
+  ...
+}
+```
+
+<Warning>
+  Sau khi sửa file `configs.json`, hãy vào `chrome://extensions/` và nhấn nút **tải lại (reload)** ở extension OMOCaptcha để áp dụng thay đổi.
+</Warning>
+
+## Cách 3. Nhập qua URL trên trình duyệt
+
+Sau khi cài extension vào trình duyệt, bạn chỉ cần truy cập URL với định dạng như sau — extension sẽ **tự động** nhận và lưu API Key:
+
+```text
+https://omocaptcha.com/set-key?api_key=YOUR_API_KEY
+```
+
+Thay `YOUR_API_KEY` bằng API Key thật của bạn rồi dán vào thanh địa chỉ của trình duyệt.
+
+<Frame>
+  ![Set API Key bằng URL](/images/huong-dan/set-api-key/05-set-key-url.png)
+</Frame>
+
+Khi trang hiển thị **SET KEY OMOCAPTCHA** là bạn đã thiết lập thành công.
+
+<Warning>
+  Không chia sẻ API Key của bạn cho người khác. Nếu bị lộ, hãy tạo lại API Key mới trong trang quản lý tài khoản.
+</Warning>

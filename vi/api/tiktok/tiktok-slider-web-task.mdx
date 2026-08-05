@@ -1,0 +1,189 @@
+---
+title: "TiktokSliderWebTask"
+sidebarTitle: "TiktokSliderWebTask"
+description: "Giải captcha kéo thả (slider) của Tiktok trên web."
+---
+
+Kéo thả trên web là một loại hình ảnh xác thực phổ biến. Người dùng cần kéo mảnh ghép nhỏ vào đúng vị trí trên ảnh nền.
+
+<Frame caption="Ví dụ captcha kéo thả của Tiktok">
+  <img
+    src="/images/tiktok-slider-modal.png"
+    style={{ maxWidth: "720px", width: "100%" }}
+  />
+</Frame>
+
+## 1. Tạo yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/createTask`
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `clientKey` | `String` | ✅ | Khóa API tài khoản khách hàng |
+| `task.type` | `String` | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.imageBase64` | `String` | ✅ | Ảnh chụp màn hình được mã hóa base64 <br /><br /><img src="/images/tiktok-slider-image.png" style={{ maxWidth: "260px", width: "100%" }} /> |
+| `task.widthView` | `Number` | ✅ | Chiều rộng ảnh hiển thị trên web (px). <br /><img src="/images/tiktok-slider-width-view.png" style={{ maxWidth: "320px", width: "100%" }} /> |
+
+### Code mẫu
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/createTask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientKey": "OMO_API_KEY",
+    "task": {
+      "type": "TiktokSliderWebTask",
+      "imageBase64": "BASE64_BODY_HERE",
+      "widthView": 340
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const { data } = await axios.post('https://api.omocaptcha.com/v2/createTask', {
+  clientKey: 'OMO_API_KEY',
+  task: {
+    type: 'TiktokSliderWebTask',
+    imageBase64: 'BASE64_BODY_HERE',
+    widthView: 340,
+  },
+});
+
+console.log(data);
+```
+
+```python Python
+import requests
+
+resp = requests.post('https://api.omocaptcha.com/v2/createTask', json={
+    'clientKey': 'OMO_API_KEY',
+    'task': {
+        'type': 'TiktokSliderWebTask',
+        'imageBase64': 'BASE64_BODY_HERE',
+        'widthView': 340,
+    },
+})
+
+print(resp.json())
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.omocaptcha.com/v2/createTask');
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'clientKey' => 'OMO_API_KEY',
+    'task' => [
+        'type' => 'TiktokSliderWebTask',
+        'imageBase64' => 'BASE64_BODY_HERE',
+        'widthView' => 340,
+    ],
+]));
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+</CodeGroup>
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+Máy chủ trả về `errorId = 0` và `taskId` khi tạo yêu cầu thành công.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 1` và `errorCode` là mã lỗi tương ứng. Xem danh sách [Mã lỗi](/vi/api/bang-ma-loi).
+
+## 2. Nhận kết quả yêu cầu
+
+### Request
+
+`POST https://api.omocaptcha.com/v2/getTaskResult`
+
+```json
+{
+  "clientKey": "OMO_API_KEY",
+  "taskId": "49f9f60a-c809-4af0-93c0-0409b72e67e0"
+}
+```
+
+### Response
+
+**Thành công:**
+
+```json
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": {
+    "end": {
+      "x": 150,
+      "y": 42
+    }
+  }
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = ready`. Đọc kết quả trong trường `solution`.
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `solution.end.x` | Number | Tọa độ **X** đích cần kéo mảnh ghép đến (px, theo hệ `widthView`) |
+| `solution.end.y` | Number | Tọa độ **Y** đích cần kéo mảnh ghép đến (px) |
+
+<Tip>
+  Toạ độ `end` là **vị trí đích** của mảnh ghép trên ảnh (theo tỉ lệ `widthView`). Kết hợp với vị trí gốc của nút kéo để tính quãng đường di chuyển, sau đó mô phỏng thao tác kéo chuột (mousedown → mousemove → mouseup) với quỹ đạo tự nhiên.
+</Tip>
+
+**Đang xử lý:**
+
+```json
+{
+  "errorId": 0,
+  "status": "processing",
+  "errorCode": "",
+  "errorDescription": ""
+}
+```
+
+Máy chủ trả về `errorId = 0` và `status = processing`. Vui lòng chờ **2 giây** rồi yêu cầu lại.
+
+**Thất bại:**
+
+```json
+{
+  "errorId": 1,
+  "errorCode": "ERROR_JOB_STATUS",
+  "errorDescription": "Job failed",
+  "status": "fail",
+  "solution": {}
+}
+```
+
+Máy chủ trả về `errorId = 1`. Xem chi tiết tại [Mã lỗi](/vi/api/bang-ma-loi).

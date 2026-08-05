@@ -1,0 +1,85 @@
+---
+title: "Introduction"
+description: "Official OMOCaptcha API documentation"
+icon: "house"
+sidebarTitle: "Introduction"
+---
+
+OMOCaptcha provides a captcha-solving API for dozens of popular captcha types: **reCAPTCHA, hCaptcha, FunCaptcha, GeeTest, TikTok, Shopee, Zalo, Amazon, Tencent**, and more.
+
+## Quick start
+
+<Steps>
+  <Step title="Sign up">
+    Register at [omocaptcha.com](https://omocaptcha.com) to get your **API key**.
+  </Step>
+  <Step title="Add funds">
+    Top up your account or purchase a **combo package**.
+  </Step>
+  <Step title="Integrate the API">
+    Integrate the API into your app using the docs below.
+  </Step>
+</Steps>
+
+## Main endpoints
+
+**API base URL:**
+
+```text
+https://api.omocaptcha.com
+```
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /v2/createTask` | Create a new captcha task |
+| `POST /v2/getTaskResult` | Retrieve the task result |
+| `POST /v2/getBalance` | Check account balance |
+| `POST /v2/getAccountInfo` | Detailed account information |
+| `POST /v2/getMyPackages` | List purchased packages |
+| `POST /v2/getServicePrice` | Captcha types \+ prices (defaults to `type:"service"`; pass `type:"package"` for combo packages) |
+
+## Response convention
+
+All endpoints return **HTTP 200** with a standard error envelope (`errorId` marks success/failure):
+
+```json
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  // ... other endpoint-specific fields
+}
+```
+
+- `errorId: 0` — **success**
+- `errorId: 1` — **business error**, read `errorCode` for classification
+
+<Tip>
+  See the **Error codes** page for details on each `errorCode`.
+</Tip>
+
+## Authentication
+
+Most endpoints require your API key in the request body under `clientKey`:
+
+```json
+{
+  "clientKey": "OMO_API_KEY"
+}
+```
+
+<Note>
+  **Public (no auth) endpoint**: `/v2/getServicePrice`
+
+  - `type:"service"` → individual captcha types
+  - `type:"package"` → combo packages
+</Note>
+
+## Security
+
+<Warning>
+  Each task can only be retrieved with the exact API key that created it (**key binding**). A mismatched key returns `ERROR_TASK_KEY_MISMATCH`.
+</Warning>
+
+- API keys must be **10–80 characters** long
+- Keys that are too short or too long are **rejected immediately** on request

@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "OMOCaptcha",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -18,36 +18,251 @@
         ]
       }
     ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    "languages": [
+      {
+        "language": "vi",
+        "default": true,
+        "groups": [
+          {
+            "group": "Bắt đầu",
+            "icon": "rocket",
+            "pages": [
+              "vi/introduction"
+            ]
+          },
+          {
+            "group": "Tài liệu API",
+            "icon": "code",
+            "pages": [
+              {
+                "group": "Tài khoản",
+                "pages": [
+                  "vi/api/kiem-tra-so-du",
+                  "vi/api/lay-thong-tin-tai-khoan",
+                  "vi/api/danh-sach-goi-cua-toi"
+                ]
+              },
+              {
+                "group": "Dịch vụ",
+                "pages": [
+                  "vi/api/lay-thong-tin-goi-dich-vu",
+                  "vi/api/lay-danh-sach-dich-vu"
+                ]
+              },
+              "vi/api/bang-ma-loi",
+              "vi/api/image-to-text-task",
+              {
+                "group": "reCAPTCHA",
+                "pages": [
+                  "vi/api/recaptcha/overview",
+                  "vi/api/recaptcha/recaptcha-v2-image-task",
+                  "vi/api/recaptcha/recaptcha-v3-token-task"
+                ]
+              },
+              {
+                "group": "hCaptcha",
+                "pages": [
+                  "vi/api/hcaptcha/overview"
+                ]
+              },
+              {
+                "group": "FunCaptcha",
+                "pages": [
+                  "vi/api/funcaptcha/overview"
+                ]
+              },
+              {
+                "group": "Tiktok",
+                "pages": [
+                  "vi/api/tiktok/overview",
+                  "vi/api/tiktok/tiktok-3d-select-object-web-task",
+                  "vi/api/tiktok/tiktok-3d-select-object-phone-task",
+                  "vi/api/tiktok/tiktok-rotate-web-task",
+                  "vi/api/tiktok/tiktok-slider-web-task",
+                  "vi/api/tiktok/tiktok-slider-phone-task"
+                ]
+              },
+              {
+                "group": "Shopee",
+                "pages": [
+                  "vi/api/shopee/shopee-slider-web-task"
+                ]
+              },
+              {
+                "group": "Zalo",
+                "pages": [
+                  "vi/api/zalo/zalo-slider-phone-task",
+                  "vi/api/zalo/zalo-select-object-task"
+                ]
+              },
+              {
+                "group": "Amzn Captcha",
+                "pages": [
+                  "vi/api/amzn-captcha/amzn-select-object-task"
+                ]
+              },
+              {
+                "group": "Geetest",
+                "pages": [
+                  "vi/api/geetest/geetest-slider-web-task",
+                  "vi/api/geetest/geetest-icon-web-task",
+                  "vi/api/geetest/geetest-gobang-web-task",
+                  "vi/api/geetest/geetest-icon-crush-web-task",
+                  "vi/api/geetest/geetest-select-object-task"
+                ]
+              },
+              {
+                "group": "Slider All",
+                "pages": [
+                  "vi/api/slider-all/slider-all-web-task"
+                ]
+              },
+              {
+                "group": "Tencent",
+                "pages": [
+                  "vi/api/slider-all/tencent-slider-web-task",
+                  "vi/api/tencent/select-object-task"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Hướng dẫn",
+            "icon": "book",
+            "pages": [
+              "vi/huong-dan/cai-extension-tu-file-zip",
+              "vi/huong-dan/set-api-key-cho-extension"
+            ]
+          }
+        ]
+      },
+      {
+        "language": "en",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "icon": "rocket",
+            "pages": [
+              "en/introduction"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "icon": "code",
+            "pages": [
+              {
+                "group": "Account",
+                "pages": [
+                  "en/api/check-balance",
+                  "en/api/get-account-info",
+                  "en/api/get-my-packages"
+                ]
+              },
+              {
+                "group": "Services",
+                "pages": [
+                  "en/api/get-service-price",
+                  "en/api/get-service-list"
+                ]
+              },
+              "en/api/error-codes",
+              "en/api/image-to-text-task",
+              {
+                "group": "reCAPTCHA",
+                "pages": [
+                  "en/api/recaptcha/overview",
+                  "en/api/recaptcha/recaptcha-v2-image-task",
+                  "en/api/recaptcha/recaptcha-v3-token-task"
+                ]
+              },
+              {
+                "group": "hCaptcha",
+                "pages": [
+                  "en/api/hcaptcha/overview"
+                ]
+              },
+              {
+                "group": "FunCaptcha",
+                "pages": [
+                  "en/api/funcaptcha/overview"
+                ]
+              },
+              {
+                "group": "Tiktok",
+                "pages": [
+                  "en/api/tiktok/overview",
+                  "en/api/tiktok/tiktok-3d-select-object-web-task",
+                  "en/api/tiktok/tiktok-3d-select-object-phone-task",
+                  "en/api/tiktok/tiktok-rotate-web-task",
+                  "en/api/tiktok/tiktok-slider-web-task",
+                  "en/api/tiktok/tiktok-slider-phone-task"
+                ]
+              },
+              {
+                "group": "Shopee",
+                "pages": [
+                  "en/api/shopee/shopee-slider-web-task"
+                ]
+              },
+              {
+                "group": "Zalo",
+                "pages": [
+                  "en/api/zalo/zalo-slider-phone-task",
+                  "en/api/zalo/zalo-select-object-task"
+                ]
+              },
+              {
+                "group": "Amzn Captcha",
+                "pages": [
+                  "en/api/amzn-captcha/amzn-select-object-task"
+                ]
+              },
+              {
+                "group": "Geetest",
+                "pages": [
+                  "en/api/geetest/geetest-slider-web-task",
+                  "en/api/geetest/geetest-icon-web-task",
+                  "en/api/geetest/geetest-gobang-web-task",
+                  "en/api/geetest/geetest-icon-crush-web-task",
+                  "en/api/geetest/geetest-select-object-task"
+                ]
+              },
+              {
+                "group": "Slider All",
+                "pages": [
+                  "en/api/slider-all/slider-all-web-task"
+                ]
+              },
+              {
+                "group": "Tencent",
+                "pages": [
+                  "en/api/tencent/select-object-task",
+                  "en/api/slider-all/tencent-slider-web-task"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Guides",
+            "icon": "book",
+            "pages": [
+              "en/guides/install-extension-from-zip",
+              "en/guides/set-api-key-for-extension"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "href": "https://omocaptcha.com"
     }
   },
   "contextual": {
@@ -56,17 +271,14 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "perplexity"
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
     }
+  },
+  "markdown": {
+    "schema": true
   }
 }
