@@ -242,7 +242,7 @@
   },
   "logo": {
     "light": "/images/logo-dark.png",
-    "dark": "/images/logo-dark.png",
+    "dark": "/images/logo.png",
     "href": "https://omocaptcha.com"
   },
   "navbar": {
