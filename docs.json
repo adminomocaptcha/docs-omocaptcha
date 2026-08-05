@@ -9,7 +9,7 @@
   },
   "favicon": {
     "light": "/images/logo_500x500.png",
-    "dark": "/images/logo_black_500x500.png"
+    "dark": "/images/logo_500x500.png"
   },
   "navigation": {
     "pages": [
