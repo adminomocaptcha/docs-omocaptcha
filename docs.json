@@ -59,7 +59,8 @@
                 "group": "hCaptcha",
                 "pages": [
                   "vi/api/hcaptcha/overview"
-                ]
+                ],
+                "hidden": true
               },
               {
                 "group": "FunCaptcha",
@@ -168,7 +169,8 @@
                 "group": "hCaptcha",
                 "pages": [
                   "en/api/hcaptcha/overview"
-                ]
+                ],
+                "hidden": true
               },
               {
                 "group": "FunCaptcha",

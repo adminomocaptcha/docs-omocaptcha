@@ -65,20 +65,9 @@ Content-Type: application/json
 ```
 
 ```json Chưa có gói
-{
-  "errorId": 0,
-  "errorCode": "",
-  "errorDescription": "",
-  "packages": []
-}
 ```
 
 ```json Thất bại
-{
-  "errorId": 1,
-  "errorCode": "ERROR_KEY_DOES_NOT_EXIST",
-  "errorDescription": "API key does not exist"
-}
 ```
 
 </CodeGroup>
@@ -138,22 +127,9 @@ curl -X POST https://api.omocaptcha.com/v2/getMyPackages \
 ```
 
 ```javascript Node.js
-const res = await fetch("https://api.omocaptcha.com/v2/getMyPackages", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ clientKey: "OMO_API_KEY" })
-});
-console.log(await res.json());
 ```
 
 ```python Python
-import requests
-
-res = requests.post(
-    "https://api.omocaptcha.com/v2/getMyPackages",
-    json={"clientKey": "OMO_API_KEY"}
-)
-print(res.json())
 ```
 
 </CodeGroup>
