@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "OMOCaptcha",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#B6FF30",
+    "light": "#B6FF30",
+    "dark": "#6F9F16"
   },
   "favicon": {
     "light": "/images/omocaptcha-icon-512.png",
@@ -272,5 +272,11 @@
   },
   "markdown": {
     "schema": true
+  },
+  "background": {
+    "color": {
+      "light": "#F4F5F2",
+      "dark": "#17171B"
+    }
   }
 }
