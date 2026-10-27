@@ -8,8 +8,8 @@
     "dark": "#15803D"
   },
   "favicon": {
-    "light": "/images/logo_500x500.png",
-    "dark": "/images/logo_500x500.png"
+    "light": "/images/omocaptcha-icon-512.png",
+    "dark": "/images/omocaptcha-icon-512.png"
   },
   "navigation": {
     "pages": [
@@ -246,8 +246,8 @@
     ]
   },
   "logo": {
-    "light": "/images/logo-dark.png",
-    "dark": "/images/logo.png",
+    "light": "/images/omocaptcha-icon-512.png",
+    "dark": "/images/omocaptcha-icon-512.png",
     "href": "https://omocaptcha.com"
   },
   "navbar": {
