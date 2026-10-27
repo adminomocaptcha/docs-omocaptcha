@@ -246,8 +246,8 @@
     ]
   },
   "logo": {
-    "light": "/images/omocaptcha-horizontal-light-2x-large-2000x500.png",
-    "dark": "/images/omocaptcha-horizontal-dark-2x-large-2000x500.png",
+    "light": "/images/omocaptcha-horizontal-light-2x-resized.png",
+    "dark": "/images/omocaptcha-horizontal-dark-2x-resized.png",
     "href": "https://omocaptcha.com"
   },
   "navbar": {
