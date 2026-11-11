@@ -1,7 +1,6 @@
 ---
-title: "TiktokSelectObjectWebTask"
-description: "Chọn 2 đối tượng có hình dạng giống nhau trên web TikTok"
-sidebarTitle: "TiktokSelectObjectWebTask"
+title: "Tiktok3DSelectObjectWebTask"
+sidebarTitle: "Tiktok3DSelectObjectWebTask"
 ---
 
 Chọn 2 đối tượng trên web là một loại hình ảnh xác thực phổ biến của TikTok.
@@ -21,11 +20,10 @@ POST https://api.omocaptcha.com/v2/createTask
 | Tham số | Kiểu | Bắt buộc | Mô tả |
 | --- | --- | :-: | --- |
 | `clientKey` | String | ✅ | Khóa tài khoản khách hàng |
-| `task.type` | String | ✅ | Tên class dịch vụ captcha cần giải |
+| `task.type` | String | ✅ | Tiktok3DSelectObjectWebTask |
 | `task.imageBase64` | String | ✅ | Hình ảnh được mã hóa base64 <br /> <img src="/images/tiktok-select-object-image.png" alt="Ảnh challenge" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
 | `task.widthView` | Number | ✅ | Chiều rộng ảnh hiển thị trên web (px) <br /> <img src="/images/tiktok-width-view.png" alt="widthView" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
 | `task.heightView` | Number | ✅ | Chiều cao ảnh hiển thị trên web (px) <br /> <img src="/images/tiktok-height-view.png" alt="heightView" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
-| `task.question` | String | ✅ | Câu hỏi của captcha (ví dụ: `Which of these objects are used in hoops?`) |
 
 <Info>
   `widthView` và `heightView` là kích thước ảnh **đang hiển thị trên web** (khác với kích thước gốc của ảnh). Bạn có thể click chuột phải vào ảnh → _Kiểm tra phần tử_ để lấy đúng giá trị.
@@ -39,11 +37,10 @@ curl -X POST https://api.omocaptcha.com/v2/createTask \
   -d '{
     "clientKey": "OMO_API_KEY",
     "task": {
-      "type": "TiktokSelectObjectWebTask",
+      "type": "Tiktok3DSelectObjectWebTask",
       "imageBase64": "BASE64_BODY_HERE",
       "widthView": 340,
-      "heightView": 212,
-      "question": "Which of these objects.?"
+      "heightView": 212
     }
   }'
 ```
@@ -54,11 +51,10 @@ const axios = require("axios");
 const { data } = await axios.post("https://api.omocaptcha.com/v2/createTask", {
   clientKey: "OMO_API_KEY",
   task: {
-    type: "TiktokSelectObjectWebTask",
+    type: "Tiktok3DSelectObjectWebTask",
     imageBase64: "BASE64_BODY_HERE",
     widthView: 340,
-    heightView: 212,
-    question: "Which of these objects.?",
+    heightView: 212
   },
 });
 
@@ -73,11 +69,10 @@ resp = requests.post(
     json={
         "clientKey": "OMO_API_KEY",
         "task": {
-            "type": "TiktokSelectObjectWebTask",
+            "type": "Tiktok3DSelectObjectWebTask",
             "imageBase64": "BASE64_BODY_HERE",
             "widthView": 340,
-            "heightView": 212,
-            "question": "Which of these objects.?"
+            "heightView": 212
         },
     },
 )
@@ -89,11 +84,10 @@ print(resp.json())
 $payload = [
     "clientKey" => "OMO_API_KEY",
     "task" => [
-        "type"        => "TiktokSelectObjectWebTask",
+        "type"        => "Tiktok3DSelectObjectWebTask",
         "imageBase64" => "BASE64_BODY_HERE",
         "widthView"   => 340,
-        "heightView"  => 212,
-        "question"    => "Which of these objects.?"
+        "heightView"  => 212
     ],
 ];
 

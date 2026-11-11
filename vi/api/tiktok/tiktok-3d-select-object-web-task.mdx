@@ -1,10 +1,9 @@
 ---
-title: "Tiktok3DSelectObjectWebTask"
-sidebarTitle: "Tiktok3DSelectObjectWebTask"
-description: "Giải captcha chọn 2 đối tượng 3D giống nhau trên web của Tiktok."
+title: "TiktokSelectObjectWebTask"
+sidebarTitle: "TiktokSelectObjectWebTask"
 ---
 
-Chọn 2 đối tượng 3D trên web là một loại hình ảnh xác thực phổ biến. Người dùng cần chọn 2 đối tượng 3D có cùng hình dạng trong một ảnh nền.
+Chon 2 đối tượng trên web là một loại hình ảnh xác thực phổ biến trông giống như thế này
 
 <Frame caption="Ví dụ captcha Tiktok 3D Select Object">
   <img
@@ -23,11 +22,11 @@ Chọn 2 đối tượng 3D trên web là một loại hình ảnh xác thực p
 | Tham số | Kiểu | Bắt buộc | Mô tả |
 | --- | --- | :-: | --- |
 | `clientKey` | String | ✅ | Khóa tài khoản khách hàng |
-| `task.type` | String | ✅ | `Tiktok3DSelectObjectWebTask` |
+| `task.type` | String | ✅ | `TiktokSelectObjectWebTask` |
 | `task.imageBase64` | String | ✅ | Hình ảnh captcha được mã hóa base64 <br /><img src="/images/tiktok-3d-select-image.png" alt="imageBase64" style={{ width: "100%", maxWidth: "260px", marginTop: "8px" }} /> |
 | `task.widthView` | Number | ✅ | Chiều rộng ảnh hiển thị trên web |
 | `task.heightView` | Number | ✅ | Chiều cao ảnh hiển thị trên web |
-| `task.question` | String | ✅ | Câu hỏi của captcha |
+| `task.question` | String | ✅ | Câu hỏi của captcha (ví dụ: Which of these objects are used in hoops?) |
 
 <Info>
   `widthView` và `heightView` là kích thước ảnh **đang hiển thị** trên trang web, không phải kích thước gốc của ảnh. Dùng công cụ Inspect element của trình duyệt để lấy giá trị chính xác.
@@ -41,11 +40,11 @@ curl -X POST https://api.omocaptcha.com/v2/createTask \
   -d '{
     "clientKey": "OMO_API_KEY",
     "task": {
-      "type": "Tiktok3DSelectObjectWebTask",
+      "type": "TiktokSelectObjectWebTask",
       "imageBase64": "BASE64_BODY_HERE",
       "widthView": 340,
       "heightView": 212,
-      "question": "Which of these objects are used in hoops?"
+      "question": "Which of these objects...?"
     }
   }'
 ```
@@ -57,11 +56,11 @@ const res = await fetch("https://api.omocaptcha.com/v2/createTask", {
   body: JSON.stringify({
     clientKey: "OMO_API_KEY",
     task: {
-      type: "Tiktok3DSelectObjectWebTask",
+      type: "TiktokSelectObjectWebTask",
       imageBase64: "BASE64_BODY_HERE",
       widthView: 340,
       heightView: 212,
-      question: "Which of these objects are used in hoops?",
+      "question": "Which of these objects...?"
     },
   }),
 });
@@ -77,11 +76,11 @@ res = requests.post(
     json={
         "clientKey": "OMO_API_KEY",
         "task": {
-            "type": "Tiktok3DSelectObjectWebTask",
+            "type": "TiktokSelectObjectWebTask",
             "imageBase64": "BASE64_BODY_HERE",
             "widthView": 340,
             "heightView": 212,
-            "question": "Which of these objects are used in hoops?",
+            "question": "Which of these objects...?"
         },
     },
 )
@@ -96,11 +95,11 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
     "clientKey" => "OMO_API_KEY",
     "task" => [
-        "type" => "Tiktok3DSelectObjectWebTask",
+        "type" => "TiktokSelectObjectWebTask",
         "imageBase64" => "BASE64_BODY_HERE",
         "widthView" => 340,
         "heightView" => 212,
-        "question" => "Which of these objects are used in hoops?",
+        "question": "Which of these objects...?"
     ],
 ]));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
