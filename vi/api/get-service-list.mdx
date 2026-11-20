@@ -1,0 +1,126 @@
+---
+title: "Lấy danh sách dịch vụ"
+description: "Lấy danh sách các dịch vụ có sẵn"
+sidebarTitle: "Lấy danh sách dịch vụ"
+---
+
+Lấy danh sách tất cả loại captcha đang hỗ trợ kèm giá bán lẻ tính theo lượt.
+
+<Info>
+  Endpoint này dùng chung URL `/v2/getServicePrice` với [Lấy thông tin gói dịch vụ](/vi/api/lay-thong-tin-goi-dich-vu). Truyền `"type": "service"` để lấy captcha bán lẻ; truyền `"type": "package"` để lấy gói combo.
+</Info>
+
+## Request
+
+```http
+POST https://api.omocaptcha.com/v2/getServicePrice
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Tham số | Kiểu | Bắt buộc | Mô tả |
+| --- | --- | :-: | --- |
+| `type` | `String` | ❌ | Mặc định `"service"`. Truyền `"package"` để lấy danh sách gói combo. |
+
+```json
+{
+  "type": "service"
+}
+```
+
+<Tip>
+  Hoặc body rỗng `{}` cũng được — mặc định trả về `services`.
+</Tip>
+
+## Response
+
+<CodeGroup>
+
+```json Thành công
+{
+  "errorId": 0,
+  "errorCode": "",
+  "errorDescription": "",
+  "services": [
+    {
+      "type": "RecaptchaV2ImageTask",
+      "name": "reCAPTCHA v2 image",
+      "price": "0.00027",
+      "avgSuccess": "99%",
+      "avgTime": "1s",
+      "image": "recaptcha.svg",
+      "description": "Google Inc",
+      "requireFields": ["imageBase64"]
+    },
+    {
+      "type": "FuncaptchaImageTask",
+      "name": "FunCaptcha Image",
+      "price": "0.00027",
+      "avgSuccess": "99%",
+      "avgTime": "1s",
+      "image": "funcaptcha.svg",
+      "description": "Arkose Labs",
+      "requireFields": ["imageBase64", "other"]
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
+### Giải thích các trường
+
+| Trường | Kiểu | Mô tả |
+| --- | --- | --- |
+| `type` | `String` | Tên kỹ thuật — dùng trong `createTask.task.type` |
+| `name` | `String` | Tên hiển thị cho UI |
+| `price` | `String` | Giá tính theo lượt (USD, kiểu chuỗi để giữ độ chính xác thập phân) |
+| `avgSuccess` | `String` | Tỷ lệ thành công trung bình |
+| `avgTime` | `String` | Thời gian giải trung bình |
+| `image` | `String` | Tên file icon (đường dẫn đầy đủ: `https://omocaptcha.com/storage/captcha-types/{filename}`) |
+| `description` | `String` | Mô tả ngắn |
+| `requireFields` | `Array` | Các trường bắt buộc phải truyền trong `task` khi gọi `createTask` |
+
+## Endpoint public
+
+<Note>
+  Endpoint này **không yêu cầu xác thực**.
+</Note>
+
+## Cache
+
+<Warning>
+  Response được **cache 60 giây** phía máy chủ — nếu cần dữ liệu mới nhất, hãy đợi qua chu kỳ cache.
+</Warning>
+
+## Ví dụ sử dụng
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.omocaptcha.com/v2/getServicePrice \
+  -H "Content-Type: application/json" \
+  -d '{"type": "service"}'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.omocaptcha.com/v2/getServicePrice", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ type: "service" })
+});
+console.log(await res.json());
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.omocaptcha.com/v2/getServicePrice",
+    json={"type": "service"}
+)
+print(res.json())
+```
+
+</CodeGroup>
