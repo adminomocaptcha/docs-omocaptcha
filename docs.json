@@ -33,16 +33,16 @@
               {
                 "group": "Tài khoản",
                 "pages": [
-                  "vi/api/kiem-tra-so-du",
-                  "vi/api/lay-thong-tin-tai-khoan",
-                  "vi/api/danh-sach-goi-cua-toi"
+                  "vi/api/check-balance",
+                  "vi/api/get-account-info",
+                  "vi/api/get-my-packages"
                 ]
               },
               {
                 "group": "Dịch vụ",
                 "pages": [
-                  "vi/api/lay-thong-tin-goi-dich-vu",
-                  "vi/api/lay-danh-sach-dich-vu"
+                  "vi/api/get-service-price",
+                  "vi/api/get-service-list"
                 ]
               },
               "vi/api/bang-ma-loi",
@@ -278,5 +278,32 @@
       "light": "#F7F8F5",
       "dark": "#17191C"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/vi/api/kiem-tra-so-du",
+      "destination": "/vi/api/check-balance",
+      "permanent": true
+    },
+    {
+      "source": "/vi/api/lay-thong-tin-tai-khoan",
+      "destination": "/vi/api/get-account-info",
+      "permanent": true
+    },
+    {
+      "source": "/vi/api/danh-sach-goi-cua-toi",
+      "destination": "/vi/api/get-my-packages",
+      "permanent": true
+    },
+    {
+      "source": "/vi/api/lay-thong-tin-goi-dich-vu",
+      "destination": "/vi/api/get-service-price",
+      "permanent": true
+    },
+    {
+      "source": "/vi/api/lay-danh-sach-dich-vu",
+      "destination": "/vi/api/get-service-list",
+      "permanent": true
+    }
+  ]
 }
